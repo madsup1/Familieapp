@@ -222,12 +222,14 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .stat b { font-size: 1.3rem; }
 
 .slot { margin-top: 18px; }
-.itemgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-top: 10px; }
+.itemgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr)); gap: 14px; margin-top: 10px; }
 .itemcard {
   display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left;
   border: 3px solid #8b8f99; border-radius: 18px; background: var(--soft); padding: 14px; min-height: 140px;
-  color: var(--muted);
+  color: var(--muted); min-width: 0;
 }
+/* Lange danske ord (fx "Mesterskabstrøje") må bryde, så kortene aldrig går ud over skærmen */
+.itemcard strong, .itemcard > span { max-width: 100%; overflow-wrap: break-word; hyphens: auto; }
 .itemcard strong { font-size: 1.15rem; color: var(--ink); }
 .itemcard.locked strong { color: var(--muted); }
 .itemcard:not(.locked) { border-color: var(--ink); background: #fff; }
@@ -268,8 +270,10 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
   .typegrid { gap: 8px; }
   .typecard { padding: 14px 6px; }
   .typecard span { font-size: 0.78rem; }
-  .itemgrid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .itemgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .itemcard { min-height: 120px; padding: 12px; }
+  .itemcard strong { font-size: 1.02rem; }
+  .itemcard > span { font-size: 0.9rem; }
   .chart { height: 220px; }
   .bottomnav {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
@@ -455,7 +459,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .daynote.ok { color: var(--green); }
 
 /* Hurtig log: 6 typer */
-.quickgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quickgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.quick, .qtext { min-width: 0; }
+.qtext strong, .qtext span { overflow-wrap: anywhere; }
 .quickgrid .quick { padding: 10px; gap: 10px; }
 .quickgrid .qicon { width: 48px; height: 48px; }
 .quickgrid .qtext strong { font-size: 1.1rem; }
@@ -486,4 +492,26 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .hf-toggle input { width: 22px; height: 22px; accent-color: var(--blue); }
 @media (max-width: 860px) {
   .typegrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Smalle telefoner (helt ned til 320px): intet må skubbe siden bredere end skærmen */
+.grid-2 > *, .hero > *, .plot, .daycol, .typecard { min-width: 0; }
+.typecard span { overflow-wrap: anywhere; }
+@media (max-width: 860px) {
+  .grid-2 { grid-template-columns: minmax(0, 1fr); }
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .typegrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 360px) {
+  main { padding-left: 12px; padding-right: 12px; }
+  .card { padding: 14px; }
+  .chart { gap: 6px; }
+  .yaxis { min-width: 24px; font-size: 0.8rem; }
+  .typecard strong { font-size: 1rem; }
+  .topbar .logo { font-size: 0.82rem; letter-spacing: 0; }
+  .itemgrid { grid-template-columns: minmax(0, 1fr); }
+  .itemcard { min-height: 0; }
+  .quickgrid .quick { padding: 8px; gap: 8px; }
+  .quickgrid .qicon { width: 38px; height: 38px; }
+  .quickgrid .qtext strong { font-size: 0.98rem; }
 }
