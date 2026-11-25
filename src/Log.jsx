@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Footprints, PersonStanding, Bike, Waves, Dumbbell, Activity, Camera, ImagePlus, X } from 'lucide-react';
-import { PhotoThumb, shrinkImage } from './Photo.jsx';
+import { shrinkImage } from './Photo.jsx';
 import { supabase } from './supabase.js';
-import Cheers from './Cheers.jsx';
 import {
-  TYPE_LABELS, TYPE_HINTS, localISO, shortDate, autoConfirmText, rawXp, isDistanceType, qualifies, MIN_MINUTES, MIN_KM,
+  TYPE_LABELS, TYPE_HINTS, localISO, rawXp, isDistanceType, qualifies, MIN_MINUTES, MIN_KM,
 } from './game.js';
 
 export const TYPE_ICONS = {
@@ -215,36 +214,6 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
           <div className="pending-fill" style={{ width: `${Math.min(100 - Math.min(100, (todayXp / cap) * 100), (todayPending / cap) * 100)}%` }} />
         </div>
         {todayPending > 0 && <p className="sub small">+{Math.round(todayPending)} XP afventer bekræftelse.</p>}
-      </div>
-
-      <div className="card">
-        <h3 className="pixel label">Seneste ture</h3>
-        <p className="sub small">Viser de seneste {Math.round((settings.history_days || 60) / 30)} måneder. Din XP tæller for altid, men billeder slettes efter den tid.</p>
-        {mine.length === 0 && <p className="sub">Ingen ture endnu. Første skridt er det vigtigste!</p>}
-        {mine.slice(0, 10).map((w) => (
-          <div key={w.id} className="feed-item">
-          <div className="trip">
-            <div>
-              <strong>{TYPE_LABELS[w.type]}</strong>
-              <div className="sub small">
-                {shortDate(w.workout_date)}
-                {w.distance_km ? ` · ${Number(w.distance_km).toLocaleString("da-DK")} km` : ''}
-                {w.duration_minutes ? ` · ${Number(w.duration_minutes)} min` : ''}
-                {w.muscle_group ? ` · ${w.muscle_group}` : ''}
-              </div>
-              {w.proof_status === 'pending' && <span className="tag">Afventer bekræftelse · {autoConfirmText(w)}</span>}
-              {w.proof_status === 'rejected' && <span className="tag red">Afvist</span>}
-            </div>
-            <div className="trip-right">
-              <span className={`pixel ${w.proof_status === 'pending' ? 'muted' : 'blue-text'}`}>
-                +{Math.round(w.proof_status === 'pending' ? rawXp(w, settings) : w.xp_awarded)}
-              </span>
-              {w.proof_path && <PhotoThumb path={w.proof_path} />}
-            </div>
-          </div>
-          <Cheers workout={w} me={me} cheers={cheers || []} profiles={profiles} refresh={refresh} setError={setError} />
-          </div>
-        ))}
       </div>
     </section>
   );

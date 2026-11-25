@@ -336,7 +336,8 @@ function Feed({ players, workouts, me, settings, cheers, refresh, setError }) {
   const [shown, setShown] = useState(FEED_STEP);
   const nameOf = (id) => firstName(players.find((p) => p.id === id)?.name ?? 'Ukendt');
   // Andres afventende pas står allerede under "Venter på bekræftelse"
-  const all = workouts.filter((w) => w.proof_status !== 'rejected' && !(w.proof_status === 'pending' && w.user_id !== me.id));
+  // Afviste pas vises kun for ejeren selv
+  const all = workouts.filter((w) => (w.proof_status !== 'rejected' || w.user_id === me.id) && !(w.proof_status === 'pending' && w.user_id !== me.id));
   const items = all.slice(0, shown);
   if (!items.length) return null;
   return (
@@ -348,7 +349,8 @@ function Feed({ players, workouts, me, settings, cheers, refresh, setError }) {
             <div>
               <strong>{w.user_id === me.id ? 'Dig' : nameOf(w.user_id)} · {TYPE_LABELS[w.type]}</strong>
               <div className="sub small">{workoutLine(w)}</div>
-              {w.proof_status === 'pending' && <span className="tag">Afventer bekræftelse</span>}
+              {w.proof_status === 'pending' && <span className="tag">Afventer bekræftelse · {autoConfirmText(w)}</span>}
+              {w.proof_status === 'rejected' && <span className="tag red">Afvist</span>}
             </div>
             <div className="trip-right">
               <span className={`pixel ${w.proof_status === 'pending' ? 'muted' : 'blue-text'}`}>
