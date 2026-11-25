@@ -1,3 +1,4 @@
+-- HISTORISK: databasen er siden ændret direkte i Supabase. Se CLAUDE.md og læs live-definitioner.
 -- TrænDyst: database-opsætning til Supabase.
 -- Kør hele filen i Supabase > SQL Editor.
 
