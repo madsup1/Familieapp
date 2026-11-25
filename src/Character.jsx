@@ -4,7 +4,7 @@ import { supabase } from './supabase.js';
 import Figure from './Figure.jsx';
 import {
   SLOTS, SLOT_LABELS, STAGE_NAMES, FORM, formLevel, isUnlocked, unlockText, playerInfo, xpForLevel, firstName,
-  genitive,
+  genitive, LOOK, lookOf,
 } from './game.js';
 import {
   pushSupported, isIOS, isStandalone, currentSubscription, enablePush, disablePush, sendTest, sampleMessage,
@@ -40,6 +40,51 @@ function NameCard({ me, character, refresh, setError }) {
       <button className="btn primary pixel" disabled={unchanged}>Gem navn</button>
       {saved && <span className="sub small">Gemt!</span>}
     </form>
+  );
+}
+
+const LOOK_ROWS = [
+  ['hair', 'Hårfarve'], ['skin', 'Hudfarve'], ['shirt', 'T-shirt'], ['pants', 'Bukser'],
+];
+
+function LookCard({ appearance, onChange }) {
+  const gender = lookOf(appearance, 'gender').id;
+  return (
+    <div className="card">
+      <h3 className="pixel label">Udseende</h3>
+      <p className="sub">Vælg frit. Det kræver ikke noget niveau.</p>
+      <div className="slot">
+        <span className="flabel">Figur</span>
+        <div className="chips look-gender">
+          {LOOK.gender.map((g) => (
+            <button key={g.id} className={`chip ${gender === g.id ? 'active' : ''}`} aria-pressed={gender === g.id}
+              onClick={() => onChange({ gender: g.id })}>{g.name}</button>
+          ))}
+        </div>
+      </div>
+      {LOOK_ROWS.map(([key, label]) => {
+        const current = lookOf(appearance, key).id;
+        const shirtHidden = key === 'shirt' && appearance.top;
+        return (
+          <div key={key} className="slot">
+            <span className="flabel">{label}</span>
+            <div className="colorrow">
+              {LOOK[key].map((o) => {
+                const on = current === o.id && !shirtHidden;
+                return (
+                  <button key={o.id} className={`colorbtn ${on ? 'active' : ''}`} aria-pressed={on}
+                    onClick={() => onChange(key === 'shirt' ? { shirt: o.id, top: null } : { [key]: o.id })}>
+                    <span className="swatch" style={{ background: o.color }} />
+                    <span>{o.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {shirtHidden && <p className="sub small">Du har en trøje på fra Udstyr. Vælg en farve for at skifte til t-shirt.</p>}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -145,9 +190,15 @@ export default function Character({ me, settings, items, workouts, characters, p
   const pct = Math.min(100, ((p.stats.total - lower) / Math.max(1, next - lower)) * 100);
 
   async function choose(slot, itemId) {
+    return save({ [slot]: itemId });
+  }
+
+  async function save(changes) {
     const nextApp = { ...appearance };
-    if (itemId === null) delete nextApp[slot];
-    else nextApp[slot] = itemId;
+    for (const [k, v] of Object.entries(changes)) {
+      if (v === null) delete nextApp[k];
+      else nextApp[k] = v;
+    }
     setAppearance(nextApp);
     const { error } = await supabase.from('characters').update({ appearance: nextApp }).eq('user_id', me.id);
     if (error) setError(error.message);
@@ -186,6 +237,8 @@ export default function Character({ me, settings, items, workouts, characters, p
           )}
         </div>
       </div>
+
+      <LookCard appearance={appearance} onChange={save} />
 
       <NotifyCard me={me} figName={figName} form={form} />
 

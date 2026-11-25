@@ -24,7 +24,7 @@ const db = {
   items: [],
   characters: [
     { user_id: ME, name: 'Bobby', appearance: { background: 'bg_skovsti', body: 'body_1', shoes: 'shoes_gamle', top: 'top_traening', headband: 'hb_sved' } },
-    { user_id: 'u-hanne', name: 'Turbo-Hanne', appearance: { background: 'bg_stadion', body: 'body_2', shoes: 'shoes_loeb', top: 'top_loebetop' } },
+    { user_id: 'u-hanne', name: 'Turbo-Hanne', appearance: { background: 'bg_stadion', body: 'body_2', shoes: 'shoes_loeb', gender: 'pige', hair: 'blond', skin: 'lys', shirt: 'roed', pants: 'denim' } },
     { user_id: 'u-peter', name: 'Bjørnen', appearance: { background: 'bg_skovsti', body: 'body_1', shoes: 'shoes_vaegt', top: 'top_styrke', hat: 'hat_kasket' } },
   ],
   workouts: [],

@@ -22,6 +22,43 @@ export const DEFAULT_APPEARANCE = {
   background: 'bg_skovsti', body: 'body_1', shoes: 'shoes_gamle', top: 'top_traening',
 };
 
+// Frit udseende: kan vælges uanset niveau (gemmes i characters.appearance som gender/hair/skin/shirt/pants).
+export const LOOK = {
+  gender: [{ id: 'dreng', name: 'Dreng' }, { id: 'pige', name: 'Pige' }],
+  hair: [
+    { id: 'sort', name: 'Sort', color: '#1f1b18' },
+    { id: 'brun', name: 'Brun', color: '#5a3a22' },
+    { id: 'lysbrun', name: 'Lysebrun', color: '#9a6a3c' },
+    { id: 'blond', name: 'Blond', color: '#e3c16f' },
+    { id: 'roed', name: 'Rød', color: '#b4492a' },
+    { id: 'graa', name: 'Grå', color: '#b9b9b4' },
+  ],
+  skin: [
+    { id: 'lys', name: 'Lys', color: '#f3d2b6' },
+    { id: 'mellem', name: 'Mellem', color: '#e0b48e' },
+    { id: 'gylden', name: 'Gylden', color: '#c68b5c' },
+    { id: 'brun', name: 'Brun', color: '#8d5a3b' },
+    { id: 'moerk', name: 'Mørk', color: '#5c3a26' },
+  ],
+  shirt: [
+    { id: 'blaa', name: 'Blå', color: '#2f66f3' },
+    { id: 'roed', name: 'Rød', color: '#e8553d' },
+    { id: 'groen', name: 'Grøn', color: '#3f9d6a' },
+    { id: 'gul', name: 'Gul', color: '#f5c518' },
+  ],
+  pants: [
+    { id: 'marine', name: 'Marineblå', color: '#2a2d3a' },
+    { id: 'denim', name: 'Cowboy', color: '#3f5f8f' },
+    { id: 'graa', name: 'Grå', color: '#7b7f88' },
+    { id: 'khaki', name: 'Khaki', color: '#a8916a' },
+  ],
+};
+export const LOOK_DEFAULTS = { gender: 'dreng', hair: 'brun', skin: 'mellem', shirt: 'blaa', pants: 'marine' };
+export const lookOf = (appearance, key) => {
+  const list = LOOK[key];
+  return list.find((o) => o.id === appearance?.[key]) || list.find((o) => o.id === LOOK_DEFAULTS[key]);
+};
+
 export function normalizeSettings(raw) {
   const out = {};
   for (const [k, v] of Object.entries(raw)) out[k] = typeof v === 'number' ? v : Number(v);

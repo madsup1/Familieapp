@@ -1,11 +1,7 @@
 // 3D-figur bygget af klodser (voxel-stil) med three.js.
 // Mål er i "pixels": hoved 8, krop 12 høj, arme og ben 12 lange (som klassiske klodsfigurer).
 import * as THREE from 'three';
-
-const SKIN = 0xe0b48e;
-const SKIN_DARK = 0xc98f63;
-const HAIR = 0x5a3a22;
-const PANTS = 0x2a2d3a;
+import { lookOf } from './game.js';
 
 const hex = (c) => (typeof c === 'number' ? c : parseInt(String(c).replace('#', ''), 16));
 function shade(c, amt) {
@@ -56,6 +52,11 @@ export function buildCharacter(appearance, itemsById, stats, decay = 0) {
   const { torsoW, torsoD, armT, muscle } = bodyShape(appearance, stats, decay);
   const color = (slot) => itemsById[appearance[slot]]?.color;
   const armX = torsoW / 2 + armT / 2;
+  const SKIN = hex(lookOf(appearance, 'skin').color);
+  const SKIN_DARK = shade(SKIN, -30);
+  const HAIR = hex(lookOf(appearance, 'hair').color);
+  const PANTS = hex(lookOf(appearance, 'pants').color);
+  const girl = lookOf(appearance, 'gender').id === 'pige';
 
   // Ben og bukser
   for (const s of [-1, 1]) box(g, 3.7, 12, 4, s * 2.1, 6, 0, PANTS);
@@ -80,9 +81,10 @@ export function buildCharacter(appearance, itemsById, stats, decay = 0) {
     box(head, 1, 1.4, 0.3, s * 1.5, 28.6, fz + 0.02, 0x15161a);
     if (decay >= 2) {
       box(head, 2.1, 0.8, 0.35, s * 2, 29, fz + 0.05, SKIN_DARK); // trætte øjenlåg
-      box(head, 2, 0.5, 0.25, s * 2, 27.7, fz, 0xb07a55); // rander under øjnene
+      box(head, 2, 0.5, 0.25, s * 2, 27.7, fz, shade(SKIN, -50)); // rander under øjnene
     }
     box(head, 2, 0.5, 0.2, s * 2, decay >= 2 ? 29.7 : 30, fz, HAIR); // øjenbryn
+    if (girl && decay < 2) box(head, 0.5, 0.6, 0.25, s * 3.1, 29.2, fz + 0.03, 0x15161a); // øjenvipper
   }
   box(head, 1, 1, 0.4, 0, 27.4, fz + 0.1, SKIN_DARK); // næse
   if (decay >= 2) {
@@ -95,18 +97,26 @@ export function buildCharacter(appearance, itemsById, stats, decay = 0) {
 
   if (decay >= 3) box(head, 6, 1, 3, 0, 23.7, 2.4, SKIN_DARK); // dobbelthage
 
-  // Hår
+  // Hår: piger har langt hår ned over skuldrene og pandehår
   box(head, 8.3, 1.6, 8.3, 0, 31.3, 0, HAIR);
-  box(head, 8.3, 5, 0.5, 0, 29.2, -4.05, HAIR);
-  for (const s of [-1, 1]) box(head, 0.5, 3, 6, s * 4.05, 30, -1, HAIR);
+  if (girl) {
+    box(head, 8.6, 11, 1.2, 0, 26.6, -4.3, HAIR); // langt hår bagpå
+    for (const s of [-1, 1]) {
+      box(head, 0.8, 9, 7.6, s * 4.25, 27.6, -0.4, HAIR); // sider
+      box(head, 2.6, 1.2, 0.5, s * 2.7, 31, 4.1, HAIR); // pandehår
+    }
+  } else {
+    box(head, 8.3, 5, 0.5, 0, 29.2, -4.05, HAIR);
+    for (const s of [-1, 1]) box(head, 0.5, 3, 6, s * 4.05, 30, -1, HAIR);
+  }
 
   // Mave, når formen falder
   const belly = decay >= 2 ? (decay - 1) * 1.4 : 0;
   if (belly) box(g, torsoW - 1, 5.5, belly, 0, 16, torsoD / 2 + belly / 2, SKIN);
 
-  // Trøje: dækker kroppen og overarmene hele vejen rundt
-  const top = color('top');
-  if (top) {
+  // Trøje: låst-op trøje, ellers den valgte t-shirt. Dækker kroppen og overarmene hele vejen rundt
+  const top = color('top') ?? lookOf(appearance, 'shirt').color;
+  {
     const dark = shade(top, -45);
     box(g, torsoW + 0.5, 11.4, torsoD + 0.5, 0, 18.6, 0, top);
     box(g, torsoW + 0.6, 0.8, torsoD + 0.6, 0, 13.3, 0, dark); // kant forneden

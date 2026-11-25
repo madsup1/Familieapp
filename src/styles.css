@@ -234,6 +234,11 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .itemcard.active { background: var(--blue); border-color: var(--ink); color: #fff; box-shadow: 4px 4px 0 var(--ink); }
 .itemcard.active strong { color: #fff; }
 .swatch { width: 40px; height: 40px; border-radius: 8px; border: 3px solid var(--ink); background: #dddbd5; }
+.colorrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.colorbtn { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 76px; padding: 10px 8px; border: 3px solid var(--ink); border-radius: 12px; background: #fff; font-weight: 700; color: var(--ink); }
+.colorbtn.active { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--ink); }
+.look-gender { margin-top: 10px; }
+.look-gender .chip { min-width: 110px; min-height: 50px; font-size: 1.1rem; }
 .itemcard.locked .swatch { border-color: #8b8f99; }
 .lockline { display: inline-flex; align-items: flex-start; gap: 6px; font-weight: 600; }
 .lockline svg { flex: none; margin-top: 3px; }
