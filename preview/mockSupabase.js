@@ -16,7 +16,7 @@ const db = {
   settings: [{
     id: 1, xp_per_km_running: 10, xp_per_minute_strength: 1, xp_per_minute_other: 0.5, daily_xp_cap: 200,
     level_curve_base: 100, level_curve_exponent: 1.5, stage2_level: 5, stage3_level: 10, stage4_level: 20,
-    stage5_level: 35, xp_per_km_walking: 4, xp_per_km_cycling: 3, xp_per_minute_swimming: 1, duel_duration_days: 7, max_active_duels: 1, max_players: 5, history_days: 60,
+    stage5_level: 35, xp_per_km_walking: 4, xp_per_km_cycling: 3, xp_per_minute_swimming: 1, duel_duration_days: 7, max_active_duels: 1, max_players: 5, history_days: 60, xp_per_1000_steps: 2, steps_max_xp: 20, steps_form_min: 6000,
   }],
   allowed_emails: [
     { email: 'mulrichpedersen@gmail.com', created_at: '2026-11-24T10:00:00Z' },
@@ -57,7 +57,9 @@ db.items = [
 function calcXp(w) {
   const s = db.settings[0];
   let raw;
-  if (['running', 'walking', 'cycling'].includes(w.type)) {
+  if (w.type === 'steps') {
+    raw = Math.min(Math.floor((w.steps || 0) / 1000) * s.xp_per_1000_steps, s.steps_max_xp);
+  } else if (['running', 'walking', 'cycling'].includes(w.type)) {
     if (!(Number(w.distance_km) > 0)) throw new Error('Angiv en distance i km');
     raw = w.distance_km * { running: s.xp_per_km_running, walking: s.xp_per_km_walking, cycling: s.xp_per_km_cycling }[w.type];
   } else {
@@ -98,6 +100,9 @@ seedWorkout('u-sofie', n(1), 'running', { distance_km: 7, duration_minutes: 40 }
 seedWorkout('u-sofie', n(2), 'swimming', { duration_minutes: 45 });
 seedWorkout('u-jonas', n(1), 'cycling', { distance_km: 30, duration_minutes: 80 });
 seedWorkout('u-jonas', n(2), 'walking', { distance_km: 6, duration_minutes: 70 });
+seedWorkout('u-peter', n(1), 'steps', { steps: 11240 });
+seedWorkout('u-sofie', n(1), 'steps', { steps: 4870 });
+seedWorkout(ME, 0, 'steps', { steps: 8432, proof_status: 'confirmed' });
 seedWorkout('u-hanne', 0, 'running', { distance_km: 6.5, duration_minutes: 37, proof_path: 'demo/loeb.svg' });
 seedWorkout('u-hanne', 0, 'strength', { duration_minutes: 40, muscle_group: 'Ryg', proof_status: 'pending', proof_path: 'demo/bevis.svg', photo_taken_at: iso(new Date()) + 'T07:42:00' });
 db.duels.push({ id: uid(), challenger_id: 'u-hanne', opponent_id: ME, status: 'pending', created_at: new Date().toISOString() });
@@ -198,8 +203,11 @@ const trainDays = (u, from, to) => new Set(db.workouts.filter((w) => w.user_id =
   && ((w.duration_minutes || 0) >= 15 || (w.distance_km || 0) >= 2)
   && new Date(w.created_at) >= new Date(from) && new Date(w.created_at) < new Date(to)).map((w) => w.workout_date)).size;
 
+let stepToken = null;
 const rpcs = {
   touch_seen() {},
+  step_token_status() { return stepToken; },
+  create_step_token() { stepToken = new Date().toISOString(); return 'A1B2C3D4E5F6'; },
   set_weekly_goal({ p_goal }) {
     const p = db.profiles.find((x) => x.id === ME);
     if (!(p_goal >= 1 && p_goal <= 7)) throw new Error('Ugemålet skal være mellem 1 og 7 dage');

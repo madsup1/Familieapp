@@ -45,6 +45,11 @@ faktisk bruger appen — venlighed over for den, der halter bagefter, er vigtige
 - **Form** (kun klient, `game.js` + Edge Function): dage siden sidste ikke-afviste pas → 0–1 Topform, 2–3 Lidt sløv,
   4–6 Ude af form, 7+ Sofakartoffel. Én træning giver straks topform igen (også mens passet afventer). XP/niveau tabes aldrig.
 - **Samlet XP** for alle tider kommer fra `player_stats()` (serveren), da klienten kun henter ~2 måneder.
+- **Skridt** (type `steps`): kommer fra iPhone Sundhed via genvejen "Motionsligaen skridt" (se `GENVEJ-SKRIDT.md`)
+  → Edge Function `skridt` med personlig kode (`step_tokens`, kun hash; `create_step_token()`). Ét automatisk bekræftet
+  pas pr. person pr. dag (unik index), `xp_per_1000_steps` (2) op til `steps_max_xp` (20), tæller i dagsloftet.
+  Ikke træningsdag; holder kun formen ved ≥ `steps_form_min` (6000). Brugere kan ikke selv indsætte `steps`-pas (RLS).
+- **Billeddato**: `workouts.photo_taken_at` læses fra EXIF i appen; trigger `check_photo_date` afviser billeder fra en anden dag.
 - **Spillere**: max `settings.max_players` (5). Kun e-mails i `allowed_emails` kan oprette konto. Første konto er admin.
 - **Historik**: billeder og beskeder ældre end `history_days` slettes hver nat; pas og XP bevares.
 
@@ -61,7 +66,7 @@ Brug migrationer til DDL, og test regler med en `do $$ ... raise exception 'TEST
 
 Planlagte opgaver (pg_cron, UTC): `figur-besked-dagligt` 16:30 (beskeder), `auto-bekraeft-hver-time` :07,
 `oprydning-hver-nat` 03:15. Cron kalder Edge Function `figur-besked` med header `x-cron-secret` (læst fra `app_secrets` i SQL).
-Edge Function-tilstande: `run` (dagens besked, højst én pr. person/døgn: duel > bekræftelse > inaktivitet),
+Edge Function `figur-besked`, tilstande: `duel` (straks-besked ved ny udfordring, kaldt af trigger på `duels`), `run` (dagens besked, højst én pr. person/døgn: duel > bekræftelse > inaktivitet),
 `cleanup`, `init`, `test` (fra appen med brugerens login). Funktionen er deployet med `verify_jwt: false`.
 
 ## Konventioner

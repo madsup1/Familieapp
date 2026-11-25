@@ -9,14 +9,16 @@ import {
   playerInfo, sumXp, startOfWeek, localISO, daysLeft, firstName, shortDate,
   TYPE_LABELS, STAGE_NAMES, autoConfirmText, rawXp,
   weekProgress, duelDays, pctText, MIN_MINUTES, MIN_KM,
-  genitive,
+  genitive, typeLabel,
 } from './game.js';
 
 const DAYS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
 // Testet for farveblindhed (alle par kan skelnes). Farven følger spilleren (tilmeldingsrækkefølge), ikke placeringen.
 export const PLAYER_COLORS = ['#0B4FC2', '#E66100', '#0E9F6E', '#B0307A', '#5BB8EE'];
 
-const workoutLine = (w) =>
+const workoutLine = (w) => w.type === 'steps'
+  ? `${shortDate(w.workout_date)} · ${Number(w.steps).toLocaleString('da-DK')} skridt · fra Sundhed`
+  :
   `${shortDate(w.workout_date)}${w.distance_km ? ` · ${Number(w.distance_km).toLocaleString('da-DK')} km` : ''}` +
   `${w.duration_minutes ? ` · ${Number(w.duration_minutes)} min` : ''}${w.muscle_group ? ` · ${w.muscle_group}` : ''}`;
 
@@ -359,7 +361,7 @@ function Feed({ players, workouts, me, settings, cheers, refresh, setError }) {
         <div key={w.id} className="feed-item">
           <div className="trip">
             <div>
-              <strong>{w.user_id === me.id ? 'Dig' : nameOf(w.user_id)} · {TYPE_LABELS[w.type]}</strong>
+              <strong>{w.user_id === me.id ? 'Dig' : nameOf(w.user_id)} · {typeLabel(w.type)}</strong>
               <div className="sub small">{workoutLine(w)}</div>
               {w.proof_status === 'pending' && <span className="tag">Afventer bekræftelse · {autoConfirmText(w)}</span>}
               {w.proof_status === 'rejected' && <span className="tag red">Afvist</span>}
@@ -406,7 +408,7 @@ function ConfirmItem({ w, me, nameOf, settings, refresh, setError }) {
       <button className="confirm-head" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="qicon small">{Icon && <Icon size={20} />}</span>
         <span className="confirm-text">
-          <strong>{nameOf(w.user_id)} · {TYPE_LABELS[w.type]} · {Math.round(rawXp(w, settings))} XP</strong>
+          <strong>{nameOf(w.user_id)} · {typeLabel(w.type)} · {Math.round(rawXp(w, settings))} XP</strong>
           <span className="sub small">{workoutLine(w)}</span>
           <PhotoDateTag w={w} />
         </span>

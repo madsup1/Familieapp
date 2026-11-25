@@ -636,3 +636,15 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .tag.photo-unknown { background: #eeede8; color: var(--muted); }
 .tag.photo-bad { background: #fde8e4; color: #9a3412; }
 .confirm-text .tag { align-self: flex-start; margin-top: 6px; padding: 2px 10px; font-size: 0.82rem; border-width: 2px; }
+
+/* Skridttæller */
+.steps-today { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.steps-today b { font-size: 1.8rem; color: var(--blue); }
+.steps-today span { font-weight: 700; color: var(--muted); }
+.steps-code { display: flex; flex-direction: column; gap: 8px; }
+.codebox { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border: 3px dashed var(--ink); border-radius: 14px; padding: 12px 14px; background: #fffbea; }
+.codebox b { font-size: 1.35rem; letter-spacing: 0.08em; }
+.steps-howto { margin: 4px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-weight: 600; line-height: 1.4; }
+.steps-howto a { color: var(--blue); }
+.card h3.label svg { vertical-align: -3px; margin-right: 6px; }
+.codebox .code-text { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 1.5rem; letter-spacing: 0.06em; }

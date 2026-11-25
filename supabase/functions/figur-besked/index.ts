@@ -100,6 +100,8 @@ async function runDaily() {
   const subscribed = new Set((subs ?? []).map((s) => s.user_id));
   const since = new Date(Date.now() - 20 * 3600 * 1000).toISOString();
   const twoDaysAgo = dkDate(new Date(Date.now() - 2 * 86400000));
+  const { data: st } = await db.from("settings").select("steps_form_min").eq("id", 1).single();
+  const formMin = Number(st?.steps_form_min ?? 6000);
   const results: Record<string, string> = {};
 
   for (const p of profiles ?? []) {
@@ -132,14 +134,16 @@ async function runDaily() {
     }
 
     // 3) For længe siden sidste træning
+    // Skridt-pas tæller kun som aktiv dag ved mange skridt (settings.steps_form_min)
     const { data: last } = await db.from("workouts").select("workout_date").eq("user_id", p.id)
-      .neq("proof_status", "rejected").order("workout_date", { ascending: false }).limit(1).maybeSingle();
+      .neq("proof_status", "rejected").or(`type.neq.steps,steps.gte.${formMin}`)
+      .order("workout_date", { ascending: false }).limit(1).maybeSingle();
     const lastDate = last?.workout_date ?? dkDate(new Date(p.created_at));
     const days = daysBetween(lastDate, today);
     if (formLevel(days) === 0) { results[p.id] = "i form"; continue; }
 
     const { data: rivalW } = await db.from("workouts").select("user_id").neq("user_id", p.id)
-      .gte("workout_date", twoDaysAgo).neq("proof_status", "rejected").limit(1).maybeSingle();
+      .gte("workout_date", twoDaysAgo).neq("proof_status", "rejected").neq("type", "steps").limit(1).maybeSingle();
     const body = inactivityMessage(owner, fig, days, rivalW ? nameOf(rivalW.user_id) : undefined);
     results[p.id] = `form ${formLevel(days)}: ${await sendTo(p.id, fig, body, "inactive")}`;
   }

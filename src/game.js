@@ -8,6 +8,9 @@ export const TYPE_HINTS = {
   swimming: 'Minutter', strength: 'Minutter + muskelgruppe', other: 'Minutter',
 };
 export const DISTANCE_TYPES = ['running', 'walking', 'cycling'];
+// Skridt fra telefonens Sundhed-app (kommer automatisk via en genvej, logges ikke i hånden)
+export const typeLabel = (t) => TYPE_LABELS[t] ?? (t === 'steps' ? 'Skridt' : t);
+const isActiveDay = (w, s) => w.type !== 'steps' || Number(w.steps) >= (s?.steps_form_min || 6000);
 export const isDistanceType = (t) => DISTANCE_TYPES.includes(t);
 
 export const SLOTS = ['background', 'body', 'shoes', 'top', 'headband', 'armband', 'hat'];
@@ -109,7 +112,7 @@ export function playerInfo(profile, workouts, settings, statsById) {
     : sumXp(workouts, profile.id);
   const level = levelFromXp(stats.total, settings);
   const stage = stageFromLevel(level, settings);
-  const form = formInfo(workouts, profile, row?.last_workout);
+  const form = formInfo(workouts.filter((w) => isActiveDay(w, settings)), profile, row?.last_workout);
   return { ...profile, stats, level, stage, form, decay: form.level };
 }
 
@@ -205,6 +208,7 @@ export function rawXp(w, s) {
   const km = Number(w.distance_km) || 0;
   const m = Number(w.duration_minutes) || 0;
   switch (w.type) {
+    case 'steps': return Math.min(Math.floor((Number(w.steps) || 0) / 1000) * (s.xp_per_1000_steps ?? 2), s.steps_max_xp ?? 20);
     case 'running': return km * s.xp_per_km_running;
     case 'walking': return km * s.xp_per_km_walking;
     case 'cycling': return km * s.xp_per_km_cycling;

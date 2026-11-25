@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Lock, Bell, BellOff, Send, X } from 'lucide-react';
+import { Lock, Bell, BellOff, Send, X, Footprints, Copy, Check } from 'lucide-react';
+import { SHORTCUT_URL } from './steps.js';
 import { supabase } from './supabase.js';
 import Figure from './Figure.jsx';
 import {
   SLOTS, SLOT_LABELS, STAGE_NAMES, FORM, formLevel, isUnlocked, unlockText, playerInfo, xpForLevel, firstName,
-  genitive, LOOK, lookOf,
+  genitive, LOOK, lookOf, localISO,
 } from './game.js';
 import {
   pushSupported, isIOS, isStandalone, currentSubscription, enablePush, disablePush, sendTest, sampleMessage,
@@ -81,6 +82,85 @@ function LookCard({ appearance, onChange }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function StepsCard({ me, settings, workouts }) {
+  const [since, setSince] = useState(undefined); // undefined = henter, null = ikke forbundet
+  const [code, setCode] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    supabase.rpc('step_token_status').then(({ data }) => setSince(data ?? null));
+  }, []);
+
+  const today = workouts.find((w) => w.user_id === me.id && w.type === 'steps' && w.workout_date === localISO());
+  const rate = settings.xp_per_1000_steps ?? 2;
+  const max = settings.steps_max_xp ?? 20;
+  const formMin = (settings.steps_form_min ?? 6000).toLocaleString('da-DK');
+
+  async function makeCode() {
+    if (since && !window.confirm('Den gamle kode holder op med at virke. Lav en ny?')) return;
+    setBusy(true);
+    setErr('');
+    const { data, error } = await supabase.rpc('create_step_token');
+    setBusy(false);
+    if (error) return setErr(error.message);
+    setCode(data);
+    setSince(new Date().toISOString());
+  }
+
+  async function copy() {
+    try { await navigator.clipboard.writeText(code); setCopied(true); } catch { setCopied(false); }
+  }
+
+  return (
+    <div className="card stack">
+      <h3 className="pixel label"><Footprints size={18} /> Skridttæller</h3>
+      {today && (
+        <div className="steps-today">
+          <b className="pixel">{Number(today.steps).toLocaleString('da-DK')}</b>
+          <span>skridt i dag · {Number(today.xp_awarded)} XP</span>
+        </div>
+      )}
+      <p className="sub">
+        Få lidt XP for dine skridt hver dag, helt automatisk fra iPhonens Sundhed-app:
+        {' '}{rate} XP pr. 1.000 skridt, højst {max} XP om dagen. Skridt tæller ikke som træningsdag,
+        men {formMin} skridt eller flere holder din figur i form.
+      </p>
+
+      {code ? (
+        <div className="steps-code">
+          <span className="flabel">Din personlige kode</span>
+          <div className="codebox">
+            <b className="code-text">{code.match(/.{1,4}/g).join(' ')}</b>
+            <button className="btn" onClick={copy}>{copied ? <><Check size={18} /> Kopieret</> : <><Copy size={18} /> Kopiér</>}</button>
+          </div>
+          <p className="sub small">Koden vises kun nu. Hold den for dig selv – den giver adgang til at sende skridt i dit navn.</p>
+          <ol className="steps-howto">
+            <li>{SHORTCUT_URL
+              ? <>Tryk på <a href={SHORTCUT_URL} target="_blank" rel="noreferrer"><b>Hent genvejen</b></a> og vælg <b>Tilføj genvej</b>.</>
+              : <>Få genvejen <b>Motionsligaen skridt</b> af Mads, og tilføj den i appen Genveje.</>}
+            </li>
+            <li>Når genvejen spørger efter din kode, så sæt koden ovenfor ind.</li>
+            <li>Kør genvejen én gang og tryk <b>Tillad</b>, så den må læse dine skridt.</li>
+            <li>I Genveje: <b>Automatisering</b> → <b>+</b> → <b>Tidspunkt</b> → kl. <b>21:30</b>, <b>Dagligt</b>, vælg <b>Kør straks</b> → vælg genvejen.</li>
+          </ol>
+        </div>
+      ) : since ? (
+        <div className="row">
+          <span className="sub"><Check size={16} /> Forbundet. Skridtene kommer automatisk hver aften.</span>
+          <button className="linkbtn top0" disabled={busy} onClick={makeCode}>Lav en ny kode</button>
+        </div>
+      ) : (
+        <button className="btn primary big pixel" disabled={busy || since === undefined} onClick={makeCode}>
+          <Footprints size={20} /> Forbind skridttæller
+        </button>
+      )}
+      {err && <p className="notice">{err}</p>}
     </div>
   );
 }
@@ -257,6 +337,8 @@ export default function Character({ me, settings, items, workouts, characters, p
       </div>
 
       <LookCard appearance={appearance} onChange={save} />
+
+      <StepsCard me={me} settings={settings} workouts={workouts} />
 
       <NotifyCard me={me} figName={figName} form={form} />
 
