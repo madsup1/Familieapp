@@ -1,0 +1,7 @@
+-- Op til 5 spillere, invitationsliste og dueller pr. spiller. Allerede kørt på projektet.
+-- Se samtalen / git-historik for fuld tekst; indholdet svarer til det, der blev kørt:
+--  * settings.max_players (default 5)
+--  * tabel allowed_emails (kun admin), tom liste = alle må oprette sig
+--  * handle_new_user tjekker max_players og allowed_emails
+--  * active_duels_for(), challenge_player, accept_duel: max_active_duels gælder pr. spiller
+--  * decline_duel: udfordreren kan også trække sin udfordring tilbage

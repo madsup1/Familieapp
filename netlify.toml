@@ -1,0 +1,21 @@
+# Netlify bygger appen automatisk ved hvert push til main.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Supabase-adresse og den offentlige (publishable) nøgle. Den er beregnet til browseren og er ikke hemmelig.
+  VITE_SUPABASE_URL = "https://ptpriymspqwuuhycjhch.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_jz65NIBi5QymqM2czpwgsw_1Bc2pxU1"
+
+# Service workeren skal altid hentes frisk, så beskeder virker efter opdateringer.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
