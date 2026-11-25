@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Footprints, PersonStanding, Bike, Waves, Dumbbell, Activity, Camera, ImagePlus, X } from 'lucide-react';
-import { shrinkImage } from './Photo.jsx';
+import { Footprints, PersonStanding, Bike, Waves, Dumbbell, Activity, Camera, ImagePlus, X, Check } from 'lucide-react';
+import { shrinkImage, readPhotoDate, localStamp } from './Photo.jsx';
 import { supabase } from './supabase.js';
 import {
-  TYPE_LABELS, TYPE_HINTS, localISO, rawXp, isDistanceType, qualifies, MIN_MINUTES, MIN_KM,
+  TYPE_LABELS, TYPE_HINTS, localISO, shortDate, rawXp, isDistanceType, qualifies, MIN_MINUTES, MIN_KM,
 } from './game.js';
 
 export const TYPE_ICONS = {
@@ -11,6 +11,23 @@ export const TYPE_ICONS = {
 };
 const ICONS = TYPE_ICONS;
 const MUSCLES = ['Ben', 'Ryg', 'Bryst', 'Arme', 'Skuldre', 'Mave/core', 'Hele kroppen'];
+
+function PhotoDateNote({ taken, day, date, mismatch, onUseDate }) {
+  if (taken === undefined) return <p className="photo-date">Læser billedets dato…</p>;
+  if (!taken) {
+    return <p className="photo-date unknown">Billedets dato kunne ikke læses (fx et skærmbillede). Det bliver vist for den, der bekræfter.</p>;
+  }
+  const time = taken.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+  if (!mismatch) return <p className="photo-date ok"><Check size={16} /> Billedet er taget {shortDate(day)} kl. {time}.</p>;
+  const canUse = day <= localISO();
+  return (
+    <div className="photo-date bad" role="alert">
+      <strong>Billedet er taget {shortDate(day)}, men du logger for {shortDate(date)}</strong>
+      <span>Vælg et billede fra samme dag{canUse ? ', eller log turen på billedets dato' : ''}.</span>
+      {canUse && <button type="button" className="btn" onClick={() => onUseDate(day)}>Log den {shortDate(day)}</button>}
+    </div>
+  );
+}
 
 export default function Log({ me, settings, workouts, cheers, profiles, refresh, setError, initialType = 'running' }) {
   const [type, setType] = useState(initialType);
@@ -22,6 +39,15 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [photoUrl, setPhotoUrl] = useState(null);
+  // Hvornår billedet er taget: undefined = læser, null = ukendt, Date = fundet
+  const [photoTaken, setPhotoTaken] = useState(undefined);
+
+  useEffect(() => {
+    let alive = true;
+    setPhotoTaken(undefined);
+    if (photo) readPhotoDate(photo).then((d) => alive && setPhotoTaken(d));
+    return () => { alive = false; };
+  }, [photo]);
 
   useEffect(() => {
     if (!photo) { setPhotoUrl(null); return undefined; }
@@ -44,10 +70,14 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
   const preview = Math.round(Math.max(0, Math.min(raw, cap - usedOnDate)));
   const countsAsDay = qualifies(draft);
 
+  const photoDay = photoTaken ? localISO(photoTaken) : null;
+  const photoMismatch = !!(photo && photoDay && photoDay !== date);
+  const photoReading = !!(photo && photoTaken === undefined);
   const valid =
-    byDistance ? Number(distance) > 0
-    : type === 'strength' ? Number(duration) > 0 && photo
-    : Number(duration) > 0;
+    !photoMismatch && !photoReading && (
+      byDistance ? Number(distance) > 0
+      : type === 'strength' ? Number(duration) > 0 && photo
+      : Number(duration) > 0);
 
   async function save(e) {
     e.preventDefault();
@@ -75,6 +105,7 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
         muscle_group: type === 'strength' && muscle ? muscle : null,
         proof_path: proofPath,
         proof_status: 'pending',
+        photo_taken_at: photo && photoTaken ? localStamp(photoTaken) : null,
       });
       if (error) {
         if (proofPath) await supabase.storage.from('proofs').remove([proofPath]);
@@ -182,6 +213,8 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
             </label>
           )
         )}
+
+        {photo && <PhotoDateNote taken={photoTaken} day={photoDay} date={date} mismatch={photoMismatch} onUseDate={setDate} />}
 
         <div className="gain">
           <span>Du får</span>

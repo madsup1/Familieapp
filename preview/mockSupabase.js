@@ -99,7 +99,7 @@ seedWorkout('u-sofie', n(2), 'swimming', { duration_minutes: 45 });
 seedWorkout('u-jonas', n(1), 'cycling', { distance_km: 30, duration_minutes: 80 });
 seedWorkout('u-jonas', n(2), 'walking', { distance_km: 6, duration_minutes: 70 });
 seedWorkout('u-hanne', 0, 'running', { distance_km: 6.5, duration_minutes: 37, proof_path: 'demo/loeb.svg' });
-seedWorkout('u-hanne', 0, 'strength', { duration_minutes: 40, muscle_group: 'Ryg', proof_status: 'pending', proof_path: 'demo/bevis.svg' });
+seedWorkout('u-hanne', 0, 'strength', { duration_minutes: 40, muscle_group: 'Ryg', proof_status: 'pending', proof_path: 'demo/bevis.svg', photo_taken_at: iso(new Date()) + 'T07:42:00' });
 db.duels.push({ id: uid(), challenger_id: 'u-hanne', opponent_id: ME, status: 'pending', created_at: new Date().toISOString() });
 {
   const myRun = db.workouts.find((w) => w.user_id === ME && w.type === 'running' && w.proof_status === 'confirmed');
@@ -152,7 +152,13 @@ class Query {
       const list = Array.isArray(this.payload) ? this.payload : [this.payload];
       for (const p of list) {
         const row = { created_at: new Date().toISOString(), ...structuredClone(p) };
-        if (this.table === 'workouts') { row.id ||= uid(); calcXp(row); }
+        if (this.table === 'workouts') {
+          // Samme regel som databasen (check_photo_date)
+          if (row.photo_taken_at && row.photo_taken_at.slice(0, 10) !== row.workout_date) {
+            return { data: null, error: { code: '23514', message: 'Billedet er taget en anden dag end træningen. Vælg et billede fra samme dag.' } };
+          }
+          row.id ||= uid(); calcXp(row);
+        }
         if (this.table === 'allowed_emails' && rows.some((r) => r.email === row.email)) return { data: null, error: { code: '23505', message: 'findes allerede' } };
         rows.push(row);
       }

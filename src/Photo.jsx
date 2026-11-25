@@ -67,3 +67,23 @@ export async function shrinkImage(file, max = 1600) {
     return file;
   }
 }
+
+// Læser hvornår billedet er taget (EXIF/XMP), før det skaleres ned (så forsvinder oplysningerne).
+// Giver et Date-objekt i lokal tid, eller null hvis datoen ikke kan læses (fx skærmbilleder).
+export async function readPhotoDate(file) {
+  try {
+    const { default: exifr } = await import('exifr');
+    const tags = await exifr.parse(file, { pick: ['DateTimeOriginal', 'CreateDate', 'DateCreated'], xmp: true });
+    const d = tags?.DateTimeOriginal || tags?.CreateDate || tags?.DateCreated;
+    const date = d instanceof Date ? d : d ? new Date(d) : null;
+    return date && !Number.isNaN(date.getTime()) ? date : null;
+  } catch {
+    return null;
+  }
+}
+
+// "2026-11-25T18:03:00" i lokal tid, til kolonnen photo_taken_at
+export function localStamp(d) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:00`;
+}

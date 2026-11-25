@@ -626,3 +626,13 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .fake-push { position: relative; }
 .fake-close { position: absolute; top: -12px; right: -12px; width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--ink); background: #fff; display: flex; align-items: center; justify-content: center; color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
 .fake-push-head span:last-child { margin-right: 18px; }
+
+/* Billedets dato */
+.photo-date { margin: -4px 0 0; font-weight: 600; font-size: 0.95rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.photo-date.ok { color: #0e7a55; }
+.photo-date.bad { flex-direction: column; align-items: flex-start; gap: 8px; color: var(--ink); background: #fde8e4; border: 2.5px solid #c2410c; border-radius: 14px; padding: 12px 14px; margin: 0; }
+.photo-date.bad strong { color: #9a3412; }
+.tag.photo-ok { background: #e3f4ec; color: #0e7a55; }
+.tag.photo-unknown { background: #eeede8; color: var(--muted); }
+.tag.photo-bad { background: #fde8e4; color: #9a3412; }
+.confirm-text .tag { align-self: flex-start; margin-top: 6px; padding: 2px 10px; font-size: 0.82rem; border-width: 2px; }

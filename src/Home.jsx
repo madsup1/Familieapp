@@ -20,6 +20,16 @@ const workoutLine = (w) =>
   `${shortDate(w.workout_date)}${w.distance_km ? ` · ${Number(w.distance_km).toLocaleString('da-DK')} km` : ''}` +
   `${w.duration_minutes ? ` · ${Number(w.duration_minutes)} min` : ''}${w.muscle_group ? ` · ${w.muscle_group}` : ''}`;
 
+// Hvornår bevisbilledet er taget, så den der bekræfter kan se det
+function PhotoDateTag({ w }) {
+  if (!w.proof_path) return null;
+  if (!w.photo_taken_at) return <span className="tag photo-unknown">📷 Dato ukendt</span>;
+  const [day, time] = String(w.photo_taken_at).split('T');
+  const hm = (time || '').slice(0, 5);
+  if (day !== w.workout_date) return <span className="tag photo-bad">📷 Taget {shortDate(day)} – ikke samme dag!</span>;
+  return <span className="tag photo-ok">📷 Samme dag{hm ? ` kl. ${hm}` : ''}</span>;
+}
+
 // ---------- Dit ugemål ----------
 function GoalCard({ me, workouts, refresh, setError }) {
   const prog = weekProgress(workouts, me);
@@ -398,6 +408,7 @@ function ConfirmItem({ w, me, nameOf, settings, refresh, setError }) {
         <span className="confirm-text">
           <strong>{nameOf(w.user_id)} · {TYPE_LABELS[w.type]} · {Math.round(rawXp(w, settings))} XP</strong>
           <span className="sub small">{workoutLine(w)}</span>
+          <PhotoDateTag w={w} />
         </span>
         <ChevronDown size={22} className={`chev ${open ? 'up' : ''}`} />
       </button>
