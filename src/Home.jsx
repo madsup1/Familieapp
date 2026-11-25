@@ -13,7 +13,8 @@ import {
 } from './game.js';
 
 const DAYS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
-export const PLAYER_COLORS = ['#2f66f3', '#e8553d', '#3f9d6a', '#8b5cf6', '#e0a800'];
+// Testet for farveblindhed (alle par kan skelnes). Farven følger spilleren (tilmeldingsrækkefølge), ikke placeringen.
+export const PLAYER_COLORS = ['#0B4FC2', '#E66100', '#0E9F6E', '#B0307A', '#5BB8EE'];
 
 const workoutLine = (w) =>
   `${shortDate(w.workout_date)}${w.distance_km ? ` · ${Number(w.distance_km).toLocaleString('da-DK')} km` : ''}` +
@@ -277,6 +278,7 @@ function Standings({ me, players, items, workouts, appearanceOf, figNameOf }) {
   );
 }
 
+// players kommer i tilmeldingsrækkefølge (profiles hentes sorteret på created_at), så farven følger personen
 function WeekChart({ players, workouts }) {
   const start = startOfWeek();
   const days = DAYS.map((label, i) => {
@@ -321,7 +323,7 @@ function WeekChart({ players, workouts }) {
       </div>
       <div className="legend">
         {players.map((p, i) => (
-          <span key={p.id} style={{ color: PLAYER_COLORS[i % PLAYER_COLORS.length] }}>
+          <span key={p.id}>
             <i className="sw" style={{ background: PLAYER_COLORS[i % PLAYER_COLORS.length] }} /> {firstName(p.name)}
           </span>
         ))}

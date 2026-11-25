@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Home as HomeIcon, PlusCircle, User, Settings as Gear, LogOut } from 'lucide-react';
 import { supabase, configured } from './supabase.js';
-import { normalizeSettings, isoWeek, localISO, DEFAULT_APPEARANCE } from './game.js';
+import { normalizeSettings, isoWeek, localISO, DEFAULT_APPEARANCE, playerInfo } from './game.js';
+import DuelReveal, { duelToReveal } from './DuelReveal.jsx';
 import { registerWorker } from './notify.js';
 import Auth from './Auth.jsx';
 import Home from './Home.jsx';
@@ -22,6 +23,7 @@ export default function App() {
   const [logType, setLogType] = useState('running');
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [reveal, setReveal] = useState(null);
 
   useEffect(() => {
     if (!configured) return;
@@ -60,6 +62,13 @@ export default function App() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // En afgjort duel, man ikke har set kampen fra endnu, vises som det første
+  useEffect(() => {
+    if (!data || !session || reveal) return;
+    const d = duelToReveal(data.duels, session.user.id);
+    if (d) setReveal(d);
+  }, [data, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Registrér at man har kigget forbi, og start service workeren til beskeder.
   useEffect(() => {
@@ -132,6 +141,18 @@ export default function App() {
         <div className="error" onClick={() => setError('')}>
           {error} <small>(tryk for at lukke)</small>
         </div>
+      )}
+
+      {reveal && (
+        <DuelReveal
+          duel={reveal}
+          me={me}
+          players={data.profiles.map((p) => playerInfo(p, data.workouts, data.settings, data.playerStats))}
+          items={data.items}
+          appearanceOf={appearanceOf}
+          figNameOf={(id) => data.characters.find((c) => c.user_id === id)?.name || null}
+          onClose={() => { setReveal(null); go('home'); }}
+        />
       )}
 
       <main>

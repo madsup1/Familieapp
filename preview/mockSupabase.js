@@ -108,7 +108,7 @@ db.duels.push({ id: uid(), challenger_id: 'u-hanne', opponent_id: ME, status: 'p
   if (hRide) db.cheers.push({ workout_id: hRide.id, user_id: 'u-peter', comment: null, created_at: new Date().toISOString() });
 }
 db.duels.push({ id: uid(), challenger_id: ME, opponent_id: 'u-peter', status: 'finished', start_at: daysAgo(12).toISOString(),
-  end_at: daysAgo(5).toISOString(), challenger_xp: 310, opponent_xp: 255, winner_id: ME, created_at: daysAgo(12).toISOString() });
+  end_at: daysAgo(5).toISOString(), challenger_xp: 310, opponent_xp: 255, winner_id: ME, challenger_goal: 3, opponent_goal: 2, challenger_days: 3, opponent_days: 1, created_at: daysAgo(12).toISOString() });
 
 const PROOF = 'data:image/svg+xml;utf8,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220"><rect width="400" height="220" fill="#dcefe2"/>` +

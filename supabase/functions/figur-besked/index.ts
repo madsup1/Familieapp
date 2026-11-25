@@ -1,4 +1,4 @@
-// Sender en daglig besked "fra figuren" som push-notifikation.
+// Sender en daglig besked "fra figuren" som push-notifikation, og straks-besked ved ny duel (mode "duel").
 // Kaldes af en planlagt opgave (pg_cron) med x-cron-secret, eller af appen (mode "test") med brugerens login.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import webpush from "npm:web-push@3.6.7";
@@ -146,6 +146,17 @@ async function runDaily() {
   return results;
 }
 
+// Sendes med det samme, når nogen udfordrer en til duel (kaldes af en trigger på duels).
+async function duelChallenge(duelId: string) {
+  const { data: d } = await db.from("duels").select("challenger_id, opponent_id, status").eq("id", duelId).maybeSingle();
+  if (!d || d.status !== "pending") return { sent: 0, reason: "ingen ventende duel" };
+  const { data: profs } = await db.from("profiles").select("id, name").in("id", [d.challenger_id, d.opponent_id]);
+  const nameOf = (id: string) => first(profs?.find((x) => x.id === id)?.name);
+  const fig = await figureName(d.opponent_id);
+  const body = `${nameOf(d.opponent_id)}! ${nameOf(d.challenger_id)} har udfordret os til duel. Åbn appen og tag imod udfordringen!`;
+  return { sent: await sendTo(d.opponent_id, `${fig}: Ny duel! ⚔️`, body, "duel") };
+}
+
 // Sletter billeder og beskeder ældre end historikken (pas og XP bevares).
 async function cleanup() {
   const { data: st } = await db.from("settings").select("history_days").eq("id", 1).single();
@@ -187,6 +198,7 @@ Deno.serve(async (req) => {
     if (req.headers.get("x-cron-secret") !== keys.cron_secret) return json({ error: "nej tak" }, 403);
     if (mode === "init") return json({ ok: true });
     if (mode === "cleanup") return json({ ok: true, ...(await cleanup()) });
+    if (mode === "duel") return json({ ok: true, ...(await duelChallenge(String(body.duel_id))) });
     return json({ ok: true, results: await runDaily() });
   } catch (e) {
     return json({ error: String((e as Error).message ?? e) }, 500);
