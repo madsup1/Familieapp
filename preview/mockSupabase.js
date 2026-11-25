@@ -109,6 +109,10 @@ db.duels.push({ id: uid(), challenger_id: 'u-hanne', opponent_id: ME, status: 'p
 }
 db.duels.push({ id: uid(), challenger_id: ME, opponent_id: 'u-peter', status: 'finished', start_at: daysAgo(12).toISOString(),
   end_at: daysAgo(5).toISOString(), challenger_xp: 310, opponent_xp: 255, winner_id: ME, challenger_goal: 3, opponent_goal: 2, challenger_days: 3, opponent_days: 1, created_at: daysAgo(12).toISOString() });
+// Preview: tilføj ?uafgjort til adressen for at se en uafgjort duel (high five)
+if (new URLSearchParams(location.search).has('uafgjort')) {
+  Object.assign(db.duels[db.duels.length - 1], { winner_id: null, challenger_xp: 280, opponent_xp: 280, opponent_days: 2 });
+}
 
 const PROOF = 'data:image/svg+xml;utf8,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220"><rect width="400" height="220" fill="#dcefe2"/>` +

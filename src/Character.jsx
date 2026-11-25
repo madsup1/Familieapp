@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Lock, Bell, BellOff, Send } from 'lucide-react';
+import { Lock, Bell, BellOff, Send, X } from 'lucide-react';
 import { supabase } from './supabase.js';
 import Figure from './Figure.jsx';
 import {
@@ -177,9 +177,12 @@ function NotifyCard({ me, figName, form }) {
           </button>
         </div>
       )}
-      <button className="linkbtn left" onClick={showExample}>Se et eksempel på en besked</button>
+      <button className="linkbtn left" onClick={example ? () => setExample(null) : showExample} aria-expanded={!!example}>
+        {example ? 'Skjul eksemplet' : 'Se et eksempel på en besked'}
+      </button>
       {example && (
         <div className="fake-push" role="status">
+          <button className="fake-close" onClick={() => setExample(null)} aria-label="Luk eksemplet"><X size={18} /></button>
           <div className="fake-push-head"><span className="fake-icon" /> <b>MOTIONSLIGAEN</b><span>nu</span></div>
           <strong>{example.title}</strong>
           <p>{example.body}</p>

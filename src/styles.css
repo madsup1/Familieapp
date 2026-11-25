@@ -623,3 +623,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 @media (prefers-reduced-motion: reduce) {
   .dr-title, .confetti i, .dr-pow.show { animation: none; }
 }
+.fake-push { position: relative; }
+.fake-close { position: absolute; top: -12px; right: -12px; width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--ink); background: #fff; display: flex; align-items: center; justify-content: center; color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.fake-push-head span:last-child { margin-right: 18px; }

@@ -16,6 +16,8 @@ export function duelToReveal(duels, meId) {
 }
 
 const PIXEL = 3;
+// Kun i preview: ?t=5.3 fryser kampen på et bestemt tidspunkt, så den kan tjekkes
+const FREEZE = import.meta.env.VITE_PREVIEW === '1' ? Number(new URLSearchParams(location.search).get('t')) || null : null;
 const HITS = ['POW!', 'BAM!', 'KLONK!', 'BOING!', 'WHAM!', 'ZAP!'];
 const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 const clamp01 = (t) => Math.max(0, Math.min(1, t));
@@ -139,51 +141,96 @@ export default function DuelReveal({ duel, me, players, items, appearanceOf, fig
       el.classList.add('show');
     };
 
+    // Armene: "front" er armen nærmest kameraet, "back" den anden
+    const armsOf = (holder) => holder.children[0].userData.arms;
+    const L = { front: armsOf(left)[-1], back: armsOf(left)[1] };
+    const R = { front: armsOf(right)[1], back: armsOf(right)[-1] };
+    const UP = -2.9;     // arm strakt op
+    const FIVE = -2.7;  // arm skråt op mod den anden (high five)
+
     const frame = (now) => {
-      const t = reduce ? T_RESULT + 1 : (now - start) / 1000;
+      const t = FREEZE ?? (reduce ? T_RESULT + 1 : (now - start) / 1000);
       const bounce = Math.abs(Math.sin(t * 9)) * 1.2;
       let lx = -13, rx = 13, ly = 0, ry = 0, lr = 0, rr = 0, shake = 0;
+      // Garde: let løftede arme
+      let lf = -0.5, lb = -0.4, rf = -0.5, rb = -0.4, lz = 0;
 
       if (t < T_IN) {
         const k = ease(clamp01(t / T_IN));
         lx = -55 + 42 * k;
         rx = 55 - 42 * k;
         ly = bounce; ry = bounce;
+        const swing = Math.sin(t * 12) * 0.6;
+        lf = swing; lb = -swing; rf = -swing; rb = swing;
       } else if (t < T_FIGHT) {
-        // Seks slag, skiftevis
+        // Seks slag, skiftevis, med skiftende arm
         const f = t - T_IN;
         const n = Math.floor(f / 0.53);
         const k = (f % 0.53) / 0.53;
         const lunge = Math.sin(Math.PI * k) * 7;
+        const punch = -0.5 - Math.sin(Math.PI * k) * 1.15;
         const recoil = k > 0.5 ? Math.sin(Math.PI * (k - 0.5) * 2) * 3 : 0;
-        if (n % 2 === 0) { lx += lunge; rx += recoil; } else { rx -= lunge; lx -= recoil; }
+        if (n % 2 === 0) {
+          lx += lunge; rx += recoil;
+          if (n % 4 === 0) lf = punch; else lb = punch;
+        } else {
+          rx -= lunge; lx -= recoil;
+          if (n % 4 === 1) rf = punch; else rb = punch;
+        }
         ly = bounce; ry = bounce;
         if (k > 0.45 && n !== lastHit) {
           lastHit = n;
           pow(HITS[n % HITS.length], n % 2 === 0 ? 8 : -8);
         }
         shake = k > 0.45 && k < 0.65 ? 0.8 : 0;
+      } else if (tie) {
+        // Uafgjort: de går hen til hinanden og giver high five
+        const k = clamp01((t - T_FIGHT) / (T_FINAL - T_FIGHT));
+        const walk = ease(clamp01(k / 0.55));
+        lx = -13 + walk * 4.5;
+        rx = 13 - walk * 4.5;
+        ly = k < 0.55 ? bounce * 0.6 : 0;
+        ry = ly;
+        // Armen på siden mod modstanderen ("back") løftes skråt op mod den anden
+        const raise = ease(clamp01((k - 0.25) / 0.45));
+        lb = -0.4 + (FIVE + 0.4) * raise;
+        rb = lb;
+        lz = raise * 0.45;
+        lf = rf = -0.2;
+        if (k >= 0.72 && lastHit !== 99) {
+          lastHit = 99;
+          pow('HIGH FIVE!', 0);
+        }
+        if (k >= 0.72 && k < 0.82) shake = 0.5;
+        if (t > T_FINAL) {
+          // Sammen-hop med armene i vejret
+          const hop = Math.abs(Math.sin((t - T_FINAL) * 6)) * 4;
+          ly = hop; ry = hop;
+          lf = rf = UP + Math.sin(t * 10) * 0.25;
+          lb = rb = UP - Math.sin(t * 10) * 0.25;
+          lz = 0;
+        }
       } else {
         const k = clamp01((t - T_FIGHT) / (T_FINAL - T_FIGHT));
         if (lastHit !== 99) {
           lastHit = 99;
-          pow(tie ? 'KLONK!' : 'KO!', loserSide === 1 ? 10 : loserSide === -1 ? -10 : 0);
+          pow('KO!', loserSide === 1 ? 10 : -10);
         }
-        if (tie) {
-          // Uafgjort: begge vakler og sætter sig
-          lx = -13 - Math.sin(Math.min(k, 1) * Math.PI) * 4;
-          rx = 13 + Math.sin(Math.min(k, 1) * Math.PI) * 4;
-          lr = Math.sin(t * 6) * 0.15; rr = -Math.sin(t * 6) * 0.15;
+        const fall = ease(k);
+        const uppercut = -0.5 - Math.sin(Math.min(k * 2, 1) * Math.PI) * 1.9;
+        const cheer = t > T_FINAL;
+        const winnerHop = cheer ? Math.abs(Math.sin((t - T_FINAL) * 6)) * 5 : 0;
+        const wave = (side) => UP + Math.sin(t * 12 + side) * 0.3;
+        if (loserSide === 1) {
+          lx = -13 + Math.sin(Math.min(k * 2, 1) * Math.PI) * 9;
+          rx = 13 + fall * 4; rr = -fall * (Math.PI / 2 - 0.1); ly = winnerHop;
+          lf = cheer ? wave(0) : uppercut; lb = cheer ? wave(2) : -0.4;
+          rf = rb = -fall * 2.6;
         } else {
-          const fall = ease(k);
-          const winnerHop = t > T_FINAL ? Math.abs(Math.sin((t - T_FINAL) * 6)) * 5 : 0;
-          if (loserSide === 1) {
-            lx = -13 + Math.sin(Math.min(k * 2, 1) * Math.PI) * 9;
-            rx = 13 + fall * 4; rr = -fall * (Math.PI / 2 - 0.1); ly = winnerHop;
-          } else {
-            rx = 13 - Math.sin(Math.min(k * 2, 1) * Math.PI) * 9;
-            lx = -13 - fall * 4; lr = fall * (Math.PI / 2 - 0.1); ry = winnerHop;
-          }
+          rx = 13 - Math.sin(Math.min(k * 2, 1) * Math.PI) * 9;
+          lx = -13 - fall * 4; lr = fall * (Math.PI / 2 - 0.1); ry = winnerHop;
+          rf = cheer ? wave(0) : uppercut; rb = cheer ? wave(2) : -0.4;
+          lf = lb = -fall * 2.6;
         }
         shake = k < 0.25 ? 1.6 : 0;
       }
@@ -193,7 +240,9 @@ export default function DuelReveal({ duel, me, players, items, appearanceOf, fig
       // Taberen falder bagover (væk fra kameraet), så den bliver i billedet
       left.rotation.x = -Math.abs(lr);
       right.rotation.x = -Math.abs(rr);
-      if (tie) { left.rotation.z = lr; right.rotation.z = rr; }
+      L.front.rotation.x = lf; L.back.rotation.x = lb;
+      R.front.rotation.x = rf; R.back.rotation.x = rb;
+      L.back.rotation.z = lz; R.back.rotation.z = -lz;
       // Vinderen snurrer rundt til sidst
       if (!tie && t > T_FINAL) {
         const w = loserSide === 1 ? left : right;

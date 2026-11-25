@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { lookOf } from './game.js';
 
+const SHOULDER = 24; // armenes omdrejningspunkt
 const hex = (c) => (typeof c === 'number' ? c : parseInt(String(c).replace('#', ''), 16));
 function shade(c, amt) {
   const n = hex(c);
@@ -62,12 +63,19 @@ export function buildCharacter(appearance, itemsById, stats, decay = 0) {
   for (const s of [-1, 1]) box(g, 3.7, 12, 4, s * 2.1, 6, 0, PANTS);
   box(g, torsoW + 0.1, 1, torsoD + 0.1, 0, 12.5, 0, shade(PANTS, 25)); // bukselinning
 
-  // Krop og arme (hud), hoved
+  // Krop og arme (hud), hoved. Hver arm er et led med omdrejningspunkt i skulderen (y=24),
+  // så den kan løftes (g.userData.arms[-1|1].rotation.x; negativ = fremad/op).
   box(g, torsoW, 11, torsoD, 0, 18.5, 0, SKIN);
+  const arms = {};
   for (const s of [-1, 1]) {
-    box(g, armT, 12, armT, s * armX, 18, 0, SKIN);
-    if (muscle > 0.3) box(g, armT + 0.15, 2, armT + 0.15, s * armX, 20, 0, SKIN_DARK); // biceps
+    const a = new THREE.Group();
+    a.position.set(s * armX, SHOULDER, 0);
+    g.add(a);
+    arms[s] = a;
+    box(a, armT, 12, armT, 0, 18 - SHOULDER, 0, SKIN);
+    if (muscle > 0.3) box(a, armT + 0.15, 2, armT + 0.15, 0, 20 - SHOULDER, 0, SKIN_DARK); // biceps
   }
+  g.userData.arms = arms;
   // Hovedet hænger lidt, når formen er dårlig
   const head = new THREE.Group();
   head.position.set(0, decay >= 3 ? -0.7 : decay >= 2 ? -0.4 : 0, decay >= 3 ? 1.1 : decay >= 2 ? 0.6 : 0);
@@ -123,8 +131,8 @@ export function buildCharacter(appearance, itemsById, stats, decay = 0) {
     if (belly) box(g, torsoW - 0.5, 6, belly + 0.5, 0, 16, torsoD / 2 + belly / 2 + 0.15, top);
     box(g, 3, 0.7, 0.2, 0, 23.9, torsoD / 2 + 0.3, dark); // krave foran
     for (const s of [-1, 1]) {
-      box(g, armT + 0.5, 5.4, armT + 0.5, s * armX, 21.5, 0, top); // ærme
-      box(g, armT + 0.6, 0.7, armT + 0.6, s * armX, 19.1, 0, dark); // ærmekant
+      box(arms[s], armT + 0.5, 5.4, armT + 0.5, 0, 21.5 - SHOULDER, 0, top); // ærme
+      box(arms[s], armT + 0.6, 0.7, armT + 0.6, 0, 19.1 - SHOULDER, 0, dark); // ærmekant
     }
     if (appearance.top === 'top_mester' || appearance.top === 'top_styrke') {
       box(g, 1.2, 10.6, 0.2, 0, 18.7, torsoD / 2 + 0.3, dark); // stribe foran
@@ -144,7 +152,7 @@ export function buildCharacter(appearance, itemsById, stats, decay = 0) {
 
   // Armbånd
   const arm = color('armband');
-  if (arm) for (const s of [-1, 1]) box(g, armT + 0.6, 1.2, armT + 0.6, s * armX, 14.8, 0, arm);
+  if (arm) for (const s of [-1, 1]) box(arms[s], armT + 0.6, 1.2, armT + 0.6, 0, 14.8 - SHOULDER, 0, arm);
 
   // Pandebånd
   const hb = color('headband');
