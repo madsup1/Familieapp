@@ -10,6 +10,8 @@ const db = {
     { id: ME, name: 'Mads Ulrich Pedersen', is_admin: true, created_at: '2026-11-24T10:00:00Z', weekly_goal: 3, pending_goal: null, pending_from: null, goal_set: false },
     { id: 'u-hanne', name: 'Hanne Pedersen', is_admin: false, created_at: '2026-11-24T11:00:00Z', weekly_goal: 4, pending_goal: null, pending_from: null, goal_set: true },
     { id: 'u-peter', name: 'Peter Pedersen', is_admin: false, created_at: '2026-11-24T12:00:00Z', weekly_goal: 2, pending_goal: null, pending_from: null, goal_set: true },
+    { id: 'u-sofie', name: 'Sofie Pedersen', is_admin: false, created_at: '2026-11-24T13:00:00Z', weekly_goal: 3, pending_goal: null, pending_from: null, goal_set: true },
+    { id: 'u-jonas', name: 'Jonas Pedersen', is_admin: false, created_at: '2026-11-24T14:00:00Z', weekly_goal: 2, pending_goal: null, pending_from: null, goal_set: true },
   ],
   settings: [{
     id: 1, xp_per_km_running: 10, xp_per_minute_strength: 1, xp_per_minute_other: 0.5, daily_xp_cap: 200,
@@ -25,6 +27,8 @@ const db = {
   characters: [
     { user_id: ME, name: 'Bobby', appearance: { background: 'bg_skovsti', body: 'body_1', shoes: 'shoes_gamle', top: 'top_traening', headband: 'hb_sved' } },
     { user_id: 'u-hanne', name: 'Turbo-Hanne', appearance: { background: 'bg_stadion', body: 'body_2', shoes: 'shoes_loeb', gender: 'pige', hair: 'blond', skin: 'lys', shirt: 'roed', pants: 'denim' } },
+    { user_id: 'u-sofie', name: 'Lynet', appearance: { background: 'bg_skovsti', body: 'body_1', shoes: 'shoes_gamle', gender: 'pige', hair: 'sort', skin: 'gylden', shirt: 'groen', pants: 'graa' } },
+    { user_id: 'u-jonas', name: 'Kaptajnen', appearance: { background: 'bg_skovsti', body: 'body_1', shoes: 'shoes_gamle', hair: 'roed', skin: 'lys', shirt: 'gul', pants: 'khaki' } },
     { user_id: 'u-peter', name: 'Bjørnen', appearance: { background: 'bg_skovsti', body: 'body_1', shoes: 'shoes_vaegt', top: 'top_styrke', hat: 'hat_kasket' } },
   ],
   workouts: [],
@@ -90,6 +94,10 @@ seedWorkout('u-hanne', n(1), 'cycling', { distance_km: 24, duration_minutes: 70 
 seedWorkout('u-peter', n(1), 'walking', { distance_km: 5.5, duration_minutes: 65 });
 seedWorkout('u-peter', 9, 'strength', { duration_minutes: 60, muscle_group: 'Bryst' });
 seedWorkout('u-peter', 5, 'running', { distance_km: 4, duration_minutes: 26 });
+seedWorkout('u-sofie', n(1), 'running', { distance_km: 7, duration_minutes: 40 });
+seedWorkout('u-sofie', n(2), 'swimming', { duration_minutes: 45 });
+seedWorkout('u-jonas', n(1), 'cycling', { distance_km: 30, duration_minutes: 80 });
+seedWorkout('u-jonas', n(2), 'walking', { distance_km: 6, duration_minutes: 70 });
 seedWorkout('u-hanne', 0, 'running', { distance_km: 6.5, duration_minutes: 37, proof_path: 'demo/loeb.svg' });
 seedWorkout('u-hanne', 0, 'strength', { duration_minutes: 40, muscle_group: 'Ryg', proof_status: 'pending', proof_path: 'demo/bevis.svg' });
 db.duels.push({ id: uid(), challenger_id: 'u-hanne', opponent_id: ME, status: 'pending', created_at: new Date().toISOString() });

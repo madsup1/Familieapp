@@ -309,7 +309,7 @@ function WeekChart({ players, workouts }) {
                   <div
                     key={players[i].id}
                     className="bar"
-                    style={{ height: `${(v / top) * 100}%`, background: PLAYER_COLORS[i % PLAYER_COLORS.length], width: `${Math.max(12, 70 / players.length)}%` }}
+                    style={{ height: `${(v / top) * 100}%`, background: PLAYER_COLORS[i % PLAYER_COLORS.length] }}
                     title={`${firstName(players[i].name)}: ${Math.round(v)} XP`}
                   />
                 ))}
