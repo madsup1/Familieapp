@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Hand, Target } from 'lucide-react';
+import { Hand, Target, ChevronDown } from 'lucide-react';
 import { PhotoThumb } from './Photo.jsx';
 import { supabase } from './supabase.js';
 import Figure from './Figure.jsx';
@@ -7,7 +7,7 @@ import Cheers, { CommentChips, giveCheer } from './Cheers.jsx';
 import { TYPE_ICONS } from './Log.jsx';
 import {
   playerInfo, sumXp, startOfWeek, localISO, daysLeft, firstName, shortDate,
-  TYPE_LABELS, TYPE_HINTS, STAGE_NAMES, autoConfirmText, rawXp,
+  TYPE_LABELS, STAGE_NAMES, autoConfirmText, rawXp,
   weekProgress, duelDays, pctText, MIN_MINUTES, MIN_KM,
   genitive,
 } from './game.js';
@@ -323,9 +323,13 @@ function WeekChart({ players, workouts }) {
 }
 
 // ---------- Feed med high-fives ----------
+const FEED_STEP = 5;
 function Feed({ players, workouts, me, settings, cheers, refresh, setError }) {
+  const [shown, setShown] = useState(FEED_STEP);
   const nameOf = (id) => firstName(players.find((p) => p.id === id)?.name ?? 'Ukendt');
-  const items = workouts.filter((w) => w.proof_status !== 'rejected').slice(0, 8);
+  // Andres afventende pas står allerede under "Venter på bekræftelse"
+  const all = workouts.filter((w) => w.proof_status !== 'rejected' && !(w.proof_status === 'pending' && w.user_id !== me.id));
+  const items = all.slice(0, shown);
   if (!items.length) return null;
   return (
     <div className="card">
@@ -348,6 +352,9 @@ function Feed({ players, workouts, me, settings, cheers, refresh, setError }) {
           <Cheers workout={w} me={me} cheers={cheers} profiles={players} refresh={refresh} setError={setError} />
         </div>
       ))}
+      {all.length > shown && (
+        <button className="btn morebtn" onClick={() => setShown(shown + FEED_STEP * 2)}>Vis flere</button>
+      )}
     </div>
   );
 }
@@ -357,6 +364,8 @@ function ConfirmItem({ w, me, nameOf, settings, refresh, setError }) {
   const [highfive, setHighfive] = useState(true);
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+  const Icon = TYPE_ICONS[w.type];
 
   async function decide(decision) {
     setBusy(true);
@@ -372,21 +381,31 @@ function ConfirmItem({ w, me, nameOf, settings, refresh, setError }) {
 
   return (
     <div className="confirm-item">
-      <p>
-        <strong>{nameOf(w.user_id)}</strong> har logget {TYPE_LABELS[w.type].toLowerCase()} · {workoutLine(w)} · {Math.round(rawXp(w, settings))} XP
-      </p>
-      <p className="sub small">Ellers {autoConfirmText(w)}.</p>
-      {w.proof_path && <PhotoThumb path={w.proof_path} large />}
+      <button className="confirm-head" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <span className="qicon small">{Icon && <Icon size={20} />}</span>
+        <span className="confirm-text">
+          <strong>{nameOf(w.user_id)} · {TYPE_LABELS[w.type]} · {Math.round(rawXp(w, settings))} XP</strong>
+          <span className="sub small">{workoutLine(w)}</span>
+        </span>
+        <ChevronDown size={22} className={`chev ${open ? 'up' : ''}`} />
+      </button>
+      {open && (
+        <div className="confirm-more">
+          {w.proof_path && <PhotoThumb path={w.proof_path} large />}
+          <CommentChips value={comment} onPick={setComment} />
+          <input className="comment-input" value={comment} maxLength={140} placeholder="Skriv en kommentar (valgfrit)" onChange={(e) => setComment(e.target.value)} />
+        </div>
+      )}
       <label className="hf-toggle">
         <input type="checkbox" checked={highfive} onChange={(e) => setHighfive(e.target.checked)} />
         <Hand size={18} /> Giv {nameOf(w.user_id)} en high-five
       </label>
-      <CommentChips value={comment} onPick={setComment} />
-      <input className="comment-input" value={comment} maxLength={140} placeholder="Eller skriv en kommentar (valgfrit)" onChange={(e) => setComment(e.target.value)} />
-      <div className="row">
+      <div className="confirm-actions">
         <button className="btn primary pixel" disabled={busy} onClick={() => decide('confirmed')}>Bekræft</button>
-        <button className="btn" disabled={busy} onClick={() => decide('rejected')}>Afvis</button>
+        {!open && <button className="linkbtn" onClick={() => setOpen(true)}>{w.proof_path ? 'Se billede' : 'Kommentér'}</button>}
+        <button className="linkbtn muted-link" disabled={busy} onClick={() => decide('rejected')}>Afvis</button>
       </div>
+      <p className="sub small">Ellers {autoConfirmText(w)}.</p>
     </div>
   );
 }
@@ -439,12 +458,29 @@ export default function Home(rawProps) {
         );
       })()}
 
+      {players.length > 1 && <WeekChart players={players} workouts={workouts} />}
+
+      <div className="card quicklog">
+        <h3 className="pixel label">Log træning</h3>
+        <div className="quickrow">
+          {Object.keys(TYPE_LABELS).map((t) => {
+            const Icon = TYPE_ICONS[t];
+            return (
+              <button key={t} className="quickmini" onClick={() => goLog(t)} aria-label={`Log ${TYPE_LABELS[t].toLowerCase()}`}>
+                <span className="qicon"><Icon size={24} /></span>
+                <span>{TYPE_LABELS[t]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <GoalCard key={`${meFull.goal_set}-${meFull.pending_goal}`} me={meFull} workouts={workouts} refresh={refresh} setError={setError} />
 
       {pendingForMe.length > 0 && (
         <div className="card attention">
           <h3 className="pixel label">Venter på bekræftelse</h3>
-          <p className="sub small">Alle træningspas skal bekræftes af en anden i ligaen. Det første svar tæller. Efter 3 dage bekræftes de automatisk.</p>
+          <p className="sub small">Tryk Bekræft, hvis det ser rigtigt ud. Det første svar tæller.</p>
           {pendingForMe.map((w) => (
             <ConfirmItem key={w.id} w={w} me={me} nameOf={nameOf} settings={settings} refresh={refresh} setError={setError} />
           ))}
@@ -457,26 +493,6 @@ export default function Home(rawProps) {
 
       <Feed {...props} players={players} />
 
-      <div className="grid-2">
-        <WeekChart players={players} workouts={workouts} />
-        <div className="card">
-          <h3 className="pixel label">Hurtig log</h3>
-          <div className="quickgrid">
-            {Object.keys(TYPE_LABELS).map((t) => {
-              const Icon = TYPE_ICONS[t];
-              return (
-                <button key={t} className="quick" onClick={() => goLog(t)}>
-                  <span className="qicon"><Icon size={26} /></span>
-                  <span className="qtext">
-                    <strong>{TYPE_LABELS[t]}</strong>
-                    <span>{TYPE_HINTS[t]}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
     </section>
   );
 }
