@@ -114,10 +114,20 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
           })}
         </div>
 
-        <label className="field">
+        <div className="field">
           <span>Dato</span>
-          <input type="date" value={date} max={localISO()} onChange={(e) => setDate(e.target.value)} required />
-        </label>
+          <div className="chips date-chips">
+            {[['I dag', 0], ['I går', 1]].map(([label, back]) => {
+              const d = new Date();
+              d.setDate(d.getDate() - back);
+              const iso = localISO(d);
+              return (
+                <button key={label} type="button" className={`chip ${date === iso ? 'active' : ''}`} aria-pressed={date === iso} onClick={() => setDate(iso)}>{label}</button>
+              );
+            })}
+          </div>
+          <input type="date" aria-label="Vælg en anden dato" value={date} max={localISO()} onChange={(e) => setDate(e.target.value)} required />
+        </div>
 
         {byDistance && (
           <label className="field">

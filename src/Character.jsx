@@ -52,8 +52,7 @@ function LookCard({ appearance, onChange }) {
   return (
     <div className="card">
       <h3 className="pixel label">Udseende</h3>
-      <p className="sub">Vælg frit. Det kræver ikke noget niveau.</p>
-      <div className="slot">
+      <div className="slot look-slot">
         <span className="flabel">Figur</span>
         <div className="chips look-gender">
           {LOOK.gender.map((g) => (
@@ -66,21 +65,19 @@ function LookCard({ appearance, onChange }) {
         const current = lookOf(appearance, key).id;
         const shirtHidden = key === 'shirt' && appearance.top;
         return (
-          <div key={key} className="slot">
-            <span className="flabel">{label}</span>
-            <div className="colorrow">
+          <div key={key} className="slot look-slot">
+            <span className="flabel">{label}: <b className="look-current">{shirtHidden ? 'trøje fra Udstyr' : lookOf(appearance, key).name}</b></span>
+            <div className="dotrow">
               {LOOK[key].map((o) => {
                 const on = current === o.id && !shirtHidden;
                 return (
-                  <button key={o.id} className={`colorbtn ${on ? 'active' : ''}`} aria-pressed={on}
-                    onClick={() => onChange(key === 'shirt' ? { shirt: o.id, top: null } : { [key]: o.id })}>
-                    <span className="swatch" style={{ background: o.color }} />
-                    <span>{o.name}</span>
-                  </button>
+                  <button key={o.id} className={`dot ${on ? 'active' : ''}`} aria-pressed={on} aria-label={`${label}: ${o.name}`} title={o.name}
+                    style={{ background: o.color }}
+                    onClick={() => onChange(key === 'shirt' ? { shirt: o.id, top: null } : { [key]: o.id })} />
                 );
               })}
             </div>
-            {shirtHidden && <p className="sub small">Du har en trøje på fra Udstyr. Vælg en farve for at skifte til t-shirt.</p>}
+            {shirtHidden && <p className="sub small">Tryk på en farve for at skifte til t-shirt.</p>}
           </div>
         );
       })}
@@ -129,6 +126,23 @@ function NotifyCard({ me, figName, form }) {
     const lvl = form.level || 2;
     setExample({ title: figName, body: sampleMessage(me.name, figName, lvl, Math.max(form.days, lvl === 1 ? 2 : lvl === 2 ? 5 : 8)) });
   };
+
+  if (status === 'on' || status === 'checking') {
+    return (
+      <div className="card stack compact-notify">
+        <div className="spread">
+          <h3 className="pixel label"><Bell size={16} /> Beskeder er slået til</h3>
+        </div>
+        <div className="row">
+          <button className="btn" disabled={busy || status === 'checking'} onClick={() => run(async () => { const n = await sendTest(); setMsg(n ? 'Prøvebesked sendt!' : 'Ingen enhed modtog beskeden.'); })}>
+            <Send size={18} /> Send en prøve
+          </button>
+          <button className="linkbtn top0" disabled={busy || status === 'checking'} onClick={() => run(disablePush, () => setStatus('off'))}>Slå fra</button>
+        </div>
+        {msg && <p className="notice">{msg}</p>}
+      </div>
+    );
+  }
 
   return (
     <div className="card stack">
@@ -182,6 +196,7 @@ export default function Character({ me, settings, items, workouts, characters, p
   const figName = character?.name || 'Din figur';
   const [appearance, setAppearance] = useState(appearanceOf(me.id));
   const [simDays, setSimDays] = useState(null);
+  const [showAll, setShowAll] = useState(false);
 
   const form = simDays === null ? p.form : { days: simDays, level: formLevel(simDays), ...FORM[formLevel(simDays)] };
 
@@ -243,12 +258,18 @@ export default function Character({ me, settings, items, workouts, characters, p
       <NotifyCard me={me} figName={figName} form={form} />
 
       <div className="card">
-        <h3 className="pixel label">Udstyr</h3>
+        <div className="spread">
+          <h3 className="pixel label">Udstyr</h3>
+          <button className="linkbtn top0" onClick={() => setShowAll(!showAll)}>{showAll ? 'Vis mindre' : 'Vis alt'}</button>
+        </div>
+        <p className="sub small">{showAll ? 'Alt udstyr, også det du ikke har låst op endnu.' : 'Dit udstyr og det næste du kan låse op.'}</p>
         {SLOTS.map((slot) => {
-          const options = items
+          const all = items
             .filter((i) => i.slot === slot)
             .sort((a, b) => Number(a.stage_required) - Number(b.stage_required) || Number(a.unlock_value) - Number(b.unlock_value));
-          if (!options.length) return null;
+          if (!all.length) return null;
+          const nextLocked = all.find((i) => !isUnlocked(i, p.stats, p.level, p.stage));
+          const options = showAll ? all : all.filter((i) => isUnlocked(i, p.stats, p.level, p.stage) || i === nextLocked);
           const optional = !['background', 'body'].includes(slot);
           return (
             <div key={slot} className="slot">
@@ -265,10 +286,12 @@ export default function Character({ me, settings, items, workouts, characters, p
                       onClick={() => choose(slot, selected && optional ? null : item.id)}
                     >
                       <span className="swatch" style={{ background: unlocked ? item.color : undefined }} />
-                      <strong>{item.name}</strong>
-                      {selected ? <span>Valgt</span> : unlocked ? <span>{optional ? 'Tryk for at vælge' : 'Låst op'}</span> : (
-                        <span className="lockline"><Lock size={14} /> {unlockText(item)}</span>
-                      )}
+                      <span className="itemtext">
+                        <strong>{item.name}</strong>
+                        {selected ? <span>Valgt</span> : unlocked ? <span>{optional ? 'Tryk for at vælge' : 'Låst op'}</span> : (
+                          <span className="lockline"><Lock size={14} /> {unlockText(item)}</span>
+                        )}
+                      </span>
                     </button>
                   );
                 })}

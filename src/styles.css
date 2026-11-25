@@ -539,3 +539,25 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .morebtn { width: 100%; margin-top: 10px; }
 .confirm-actions .linkbtn { margin-top: 0; padding: 8px 0; }
 @media (max-width: 860px) { .chart { height: 180px; } }
+
+/* Min figur: kompakt udseende og udstyr */
+.look-slot { margin-top: 14px; }
+.look-current { color: var(--ink); text-transform: none; letter-spacing: 0; }
+.dotrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.dot { width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--ink); padding: 0; flex: none; }
+.dot.active { outline: 3px solid var(--blue); outline-offset: 3px; box-shadow: 3px 3px 0 var(--ink); }
+.itemcard { flex-direction: row; align-items: center; gap: 12px; min-height: 0; }
+.itemcard .swatch { flex: none; }
+.itemtext { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.itemtext strong, .itemtext > span { overflow-wrap: break-word; hyphens: auto; }
+.itemtext > span { font-size: 0.9rem; }
+.linkbtn.top0 { margin-top: 0; }
+.btn.wide { width: 100%; margin-top: 8px; }
+.compact-notify .label { display: inline-flex; align-items: center; gap: 8px; }
+.date-chips { margin: 4px 0 8px; }
+.date-chips .chip { min-height: 46px; min-width: 90px; font-size: 1.05rem; }
+@media (max-width: 860px) {
+  .itemcard { min-height: 0; padding: 10px 12px; }
+  .itemgrid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .itemcard strong { font-size: 1.02rem; }
+}

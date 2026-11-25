@@ -115,6 +115,7 @@ function DuelCard({ me, players, items, workouts, duels, appearanceOf, figNameOf
   const otherActive = activeAll.filter((d) => !involves(d, me.id));
   const busy = new Set(activeAll.flatMap((d) => [d.challenger_id, d.opponent_id]));
   const lastMine = duels.find((d) => d.status === 'finished' && involves(d, me.id));
+  const [picking, setPicking] = useState(false);
 
   const expiredId = myActive && new Date(myActive.end_at) <= new Date() ? myActive.id : null;
   useEffect(() => {
@@ -174,7 +175,7 @@ function DuelCard({ me, players, items, workouts, duels, appearanceOf, figNameOf
 
   return (
     <div className="card">
-      <h3 className="pixel label">Duel status</h3>
+      <h3 className="pixel label">Duel</h3>
       {versus}
 
       {incoming.map((d) => (
@@ -202,7 +203,14 @@ function DuelCard({ me, players, items, workouts, duels, appearanceOf, figNameOf
               {lastMine.winner_id ? (lastMine.winner_id === me.id ? 'du vandt' : 'du tabte') : 'uafgjort'}.
             </p>
           )}
-          <span className="flabel">Udfordr en medspiller</span>
+          {!picking && (
+            <button className="btn pixel wide" onClick={() => setPicking(true)}>Udfordr en medspiller</button>
+          )}
+          {picking && (<>
+          <div className="spread">
+            <span className="flabel">Udfordr en medspiller</span>
+            <button className="linkbtn top0" onClick={() => setPicking(false)}>Luk</button>
+          </div>
           <p className="sub small">I dyster i 7 dage om at nå flest procent af jeres eget ugemål.</p>
           <div className="challenge-grid">
             {others.map((p) => {
@@ -220,6 +228,7 @@ function DuelCard({ me, players, items, workouts, duels, appearanceOf, figNameOf
               );
             })}
           </div>
+          </>)}
         </>
       )}
 
@@ -251,7 +260,6 @@ function Standings({ me, players, items, workouts, appearanceOf, figNameOf }) {
   return (
     <div className="card">
       <h3 className="pixel label">Stilling denne uge</h3>
-      <p className="sub small">Målt i procent af hver persons eget ugemål, så alle kan vinde.</p>
       {rows.map((p, i) => (
         <div key={p.id} className={`standing ${p.id === me.id ? 'me' : ''}`}>
           <span className="rank pixel">{i + 1}</span>
