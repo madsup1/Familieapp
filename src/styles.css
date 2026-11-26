@@ -648,3 +648,17 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .steps-howto a { color: var(--blue); }
 .card h3.label svg { vertical-align: -3px; margin-right: 6px; }
 .codebox .code-text { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 1.5rem; letter-spacing: 0.06em; }
+
+/* Figur tæt på (fra stillingen) */
+.figure-btn { padding: 0; border: 0; background: none; border-radius: 10px; flex: none; cursor: zoom-in; }
+.figure-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.zoom-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(21, 22, 26, 0.55); display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+.zoom-card { position: relative; width: 100%; max-width: 380px; margin: auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.zoom-title { margin: 0; font-size: 1.3rem; overflow-wrap: anywhere; }
+.zoom-card .sub { margin: 0; }
+.zoom-figure .figure-wrap { align-items: center; }
+.zoom-card .statgrid { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+.zoom-card .stat { padding: 8px 12px; text-align: left; }
+.zoom-week { margin: 4px 0 0; }
+.zoom-card .formtag { margin: 0; }
+.zoom-card .fake-close { top: 10px; right: 10px; }

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Hand, Target, ChevronDown } from 'lucide-react';
 import { PhotoThumb } from './Photo.jsx';
 import { supabase } from './supabase.js';
 import Figure from './Figure.jsx';
+import FigureZoom from './FigureZoom.jsx';
 import Cheers, { CommentChips, giveCheer } from './Cheers.jsx';
 import { TYPE_ICONS } from './Log.jsx';
 import {
@@ -270,13 +271,20 @@ function Standings({ me, players, items, workouts, appearanceOf, figNameOf }) {
   const rows = players
     .map((p) => ({ ...p, prog: weekProgress(workouts, p), week: sumXp(workouts, p.id, { from }).total }))
     .sort((a, b) => b.prog.pct - a.prog.pct || b.week - a.week);
+  const [zoomId, setZoomId] = useState(null);
+  const closeZoom = useCallback(() => setZoomId(null), []);
+  const zoomIdx = rows.findIndex((p) => p.id === zoomId);
   return (
     <div className="card">
       <h3 className="pixel label">Stilling denne uge</h3>
+      <p className="sub small">Tryk på en figur for at se den tæt på.</p>
       {rows.map((p, i) => (
         <div key={p.id} className={`standing ${p.id === me.id ? 'me' : ''}`}>
           <span className="rank pixel">{i + 1}</span>
-          <Figure appearance={appearanceOf(p.id)} items={items} stats={p.stats} decay={p.decay} size={52} />
+          <button type="button" className="figure-btn" onClick={() => setZoomId(p.id)}
+            aria-label={p.id === me.id ? 'Se din figur tæt på' : `Se ${genitive(firstName(p.name))} figur tæt på`}>
+            <Figure appearance={appearanceOf(p.id)} items={items} stats={p.stats} decay={p.decay} size={52} />
+          </button>
           <span className="standing-name">
             <strong>{firstName(p.name)}{p.id === me.id ? ' (dig)' : ''}</strong>
             <small>{p.prog.days} af {p.prog.goal} dage · {Math.round(p.week)} XP{figNameOf(p.id) ? ` · ${figNameOf(p.id)}` : ''}</small>
@@ -286,6 +294,10 @@ function Standings({ me, players, items, workouts, appearanceOf, figNameOf }) {
           <span className={`pixel ${p.prog.pct >= 1 ? 'green-text' : 'blue-text'}`}>{pctText(p.prog.pct)}</span>
         </div>
       ))}
+      {zoomIdx >= 0 && (
+        <FigureZoom player={rows[zoomIdx]} rank={zoomIdx + 1} isMe={zoomId === me.id}
+          appearance={appearanceOf(zoomId)} items={items} figName={figNameOf(zoomId)} onClose={closeZoom} />
+      )}
     </div>
   );
 }

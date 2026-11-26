@@ -21,7 +21,7 @@ function StaticFigure({ appearance, items, stats, angle, size, decay = 0 }) {
   );
 }
 
-function InteractiveFigure({ appearance, items, stats, size, decay = 0 }) {
+function InteractiveFigure({ appearance, items, stats, size, decay = 0, label = "Din figur" }) {
   const canvasRef = useRef(null);
   const state = useRef({ angle: 0, target: 0, drag: null, renderer: null, scene: null, character: null, camera: null, raf: 0, spin: false });
   const [spinning, setSpinning] = useState(false);
@@ -137,7 +137,7 @@ function InteractiveFigure({ appearance, items, stats, size, decay = 0 }) {
           onPointerMove={onMove}
           onPointerUp={onUp}
           onPointerCancel={onUp}
-          aria-label="Din figur. Træk til siden for at dreje den."
+          aria-label={`${label}. Træk til siden for at dreje den.`}
         />
       </div>
       <div className="rotate">
