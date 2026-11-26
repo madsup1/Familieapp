@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Lock, Bell, BellOff, Send, X, Footprints, Copy, Check } from 'lucide-react';
+import { Lock, Bell, BellOff, Send, X, Footprints, Copy, Check, ChevronDown } from 'lucide-react';
 import { SHORTCUT_URL } from './steps.js';
 import { supabase } from './supabase.js';
 import Figure from './Figure.jsx';
@@ -279,7 +279,7 @@ export default function Character({ me, settings, items, workouts, characters, p
   const figName = character?.name || 'Din figur';
   const [appearance, setAppearance] = useState(appearanceOf(me.id));
   const [simDays, setSimDays] = useState(null);
-  const [showAll, setShowAll] = useState(false);
+  const [openSlot, setOpenSlot] = useState(null);
 
   const form = simDays === null ? p.form : { days: simDays, level: formLevel(simDays), ...FORM[formLevel(simDays)] };
 
@@ -343,47 +343,57 @@ export default function Character({ me, settings, items, workouts, characters, p
       <NotifyCard me={me} figName={figName} form={form} />
 
       <div className="card">
-        <div className="spread">
-          <h3 className="pixel label">Udstyr</h3>
-          <button className="linkbtn top0" onClick={() => setShowAll(!showAll)}>{showAll ? 'Vis mindre' : 'Vis alt'}</button>
-        </div>
-        <p className="sub small">{showAll ? 'Alt udstyr, også det du ikke har låst op endnu.' : 'Dit udstyr og det næste du kan låse op.'}</p>
-        {SLOTS.map((slot) => {
-          const all = items
-            .filter((i) => i.slot === slot)
-            .sort((a, b) => Number(a.stage_required) - Number(b.stage_required) || Number(a.unlock_value) - Number(b.unlock_value));
-          if (!all.length) return null;
-          const nextLocked = all.find((i) => !isUnlocked(i, p.stats, p.level, p.stage));
-          const options = showAll ? all : all.filter((i) => isUnlocked(i, p.stats, p.level, p.stage) || i === nextLocked);
-          const optional = !['background', 'body'].includes(slot);
-          return (
-            <div key={slot} className="slot">
-              <span className="flabel">{SLOT_LABELS[slot]}</span>
-              <div className="itemgrid">
-                {options.map((item) => {
-                  const unlocked = isUnlocked(item, p.stats, p.level, p.stage);
-                  const selected = appearance[slot] === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      disabled={!unlocked}
-                      className={`itemcard ${selected ? 'active' : ''} ${unlocked ? '' : 'locked'}`}
-                      onClick={() => choose(slot, selected && optional ? null : item.id)}
-                    >
-                      <span className="swatch" style={{ background: unlocked ? item.color : undefined }} />
-                      <span className="itemtext">
-                        <strong>{item.name}</strong>
-                        {selected ? <span>Valgt</span> : unlocked ? <span>{optional ? 'Tryk for at vælge' : 'Låst op'}</span> : (
-                          <span className="lockline"><Lock size={14} /> {unlockText(item)}</span>
-                        )}
-                      </span>
-                    </button>
-                  );
-                })}
+        <h3 className="pixel label">Udstyr</h3>
+        <p className="sub small">Tryk på en kategori for at se, hvad du kan vælge og låse op.</p>
+        <div className="slots">
+          {SLOTS.map((slot) => {
+            const all = items
+              .filter((i) => i.slot === slot)
+              .sort((a, b) => Number(a.stage_required) - Number(b.stage_required) || Number(a.unlock_value) - Number(b.unlock_value));
+            if (!all.length) return null;
+            const unlockedCount = all.filter((i) => isUnlocked(i, p.stats, p.level, p.stage)).length;
+            const current = all.find((i) => i.id === appearance[slot]);
+            const optional = !['background', 'body'].includes(slot);
+            const open = openSlot === slot;
+            return (
+              <div key={slot} className={`slot ${open ? 'open' : ''}`}>
+                <button type="button" className="slot-head" aria-expanded={open} onClick={() => setOpenSlot(open ? null : slot)}>
+                  <span className="swatch small" style={{ background: current?.color }} />
+                  <span className="slot-title">
+                    <strong>{SLOT_LABELS[slot]}</strong>
+                    <small>{current ? current.name : 'Ingen valgt'}</small>
+                  </span>
+                  <span className="slot-count">{unlockedCount}/{all.length}</span>
+                  <ChevronDown size={20} className="chev" aria-hidden="true" />
+                </button>
+                {open && (
+                  <div className="itemgrid">
+                    {all.map((item) => {
+                      const unlocked = isUnlocked(item, p.stats, p.level, p.stage);
+                      const selected = appearance[slot] === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          disabled={!unlocked}
+                          className={`itemcard ${selected ? 'active' : ''} ${unlocked ? '' : 'locked'}`}
+                          onClick={() => choose(slot, selected && optional ? null : item.id)}
+                        >
+                          <span className="swatch" style={{ background: unlocked ? item.color : undefined }} />
+                          <span className="itemtext">
+                            <strong>{item.name}</strong>
+                            {selected ? <span>{optional ? 'Valgt · tryk for at fjerne' : 'Valgt'}</span> : unlocked ? <span>{optional ? 'Tryk for at vælge' : 'Låst op'}</span> : (
+                              <span className="lockline"><Lock size={14} /> {unlockText(item)}</span>
+                            )}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );

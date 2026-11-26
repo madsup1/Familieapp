@@ -662,3 +662,17 @@ main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 120px; }
 .zoom-week { margin: 4px 0 0; }
 .zoom-card .formtag { margin: 0; }
 .zoom-card .fake-close { top: 10px; right: 10px; }
+
+/* Udstyr som fold-ud-liste */
+.slots { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.slots .slot { margin-top: 0; border: 2.5px solid var(--ink); border-radius: 14px; background: #fff; }
+.slot-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: none; border: 0; text-align: left; color: var(--ink); font: inherit; min-height: 56px; }
+.slot-head:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 12px; }
+.slot-title { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.slot-title strong { font-size: 1.05rem; }
+.slot-title small { color: var(--muted); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot-count { font-weight: 800; color: var(--muted); font-size: 0.9rem; }
+.slot-head .chev { flex: none; transition: transform 0.15s; }
+.slot.open .slot-head .chev { transform: rotate(180deg); }
+.slot.open .itemgrid { margin: 0; padding: 4px 12px 12px; }
+.swatch.small { width: 28px; height: 28px; border-width: 2.5px; flex: none; }

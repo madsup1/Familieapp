@@ -15,10 +15,10 @@ export const workoutLabel = (w) => (w.type === 'other' && w.activity ? w.activit
 const isActiveDay = (w, s) => w.type !== 'steps' || Number(w.steps) >= (s?.steps_form_min || 6000);
 export const isDistanceType = (t) => DISTANCE_TYPES.includes(t);
 
-export const SLOTS = ['background', 'body', 'shoes', 'top', 'headband', 'armband', 'hat'];
+export const SLOTS = ['background', 'body', 'top', 'shoes', 'hat', 'headband', 'glasses', 'neck', 'armband'];
 export const SLOT_LABELS = {
   background: 'Baggrund', body: 'Krop', shoes: 'Sko', top: 'Tøj',
-  headband: 'Pandebånd', armband: 'Armbånd', hat: 'Hat',
+  headband: 'Pandebånd', armband: 'Armbånd', hat: 'Hat', glasses: 'Briller', neck: 'Hals',
 };
 
 export const STAGE_NAMES = ['Nybegynder', 'Amatør', 'Øvet', 'Erfaren', 'Mester'];
