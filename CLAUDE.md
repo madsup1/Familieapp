@@ -66,7 +66,7 @@ Brug migrationer til DDL, og test regler med en `do $$ ... raise exception 'TEST
 
 Planlagte opgaver (pg_cron, UTC): `figur-besked-dagligt` 16:30 (beskeder), `auto-bekraeft-hver-time` :07,
 `oprydning-hver-nat` 03:15. Cron kalder Edge Function `figur-besked` med header `x-cron-secret` (læst fra `app_secrets` i SQL).
-Edge Function `figur-besked`, tilstande: `duel` (straks-besked ved ny udfordring, kaldt af trigger på `duels`), `run` (dagens besked, højst én pr. person/døgn: duel > bekræftelse > inaktivitet),
+Edge Function `figur-besked`, tilstande: `duel` (straks-besked ved ny udfordring, kaldt af trigger på `duels`), `workout` (besked til de andre, når nogen logger træning; trigger `workout_posted_push` på `workouts`, skridt undtaget), `run` (dagens besked, højst én pr. person/døgn – `workout`-beskeder tæller ikke med: duel > bekræftelse > inaktivitet),
 `cleanup`, `init`, `test` (fra appen med brugerens login). Funktionen er deployet med `verify_jwt: false`.
 
 ## Konventioner

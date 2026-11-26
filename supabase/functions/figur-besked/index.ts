@@ -1,4 +1,5 @@
-// Sender en daglig besked "fra figuren" som push-notifikation, og straks-besked ved ny duel (mode "duel").
+// Sender en daglig besked "fra figuren" som push-notifikation, og straks-besked ved ny duel (mode "duel")
+// og når en anden spiller logger træning (mode "workout").
 // Kaldes af en planlagt opgave (pg_cron) med x-cron-secret, eller af appen (mode "test") med brugerens login.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import webpush from "npm:web-push@3.6.7";
@@ -107,7 +108,7 @@ async function runDaily() {
   for (const p of profiles ?? []) {
     if (!subscribed.has(p.id)) continue;
     const { count: recent } = await db.from("notification_log").select("id", { count: "exact", head: true })
-      .eq("user_id", p.id).gte("sent_at", since);
+      .eq("user_id", p.id).gte("sent_at", since).neq("kind", "workout"); // træningsbeskeder spærrer ikke for dagens besked
     if (recent) { results[p.id] = "allerede sendt"; continue; }
 
     const owner = first(p.name);
@@ -161,6 +162,29 @@ async function duelChallenge(duelId: string) {
   return { sent: await sendTo(d.opponent_id, `${fig}: Ny duel! ⚔️`, body, "duel") };
 }
 
+// Sendes til alle andre spillere, når nogen logger træning (kaldes af en trigger på workouts).
+const TYPE_NAMES: Record<string, string> = {
+  running: "Løb", walking: "Gåtur", cycling: "Cykling", swimming: "Svømning", strength: "Styrke", other: "Andet",
+};
+async function workoutPosted(workoutId: string) {
+  const { data: w } = await db.from("workouts").select("*").eq("id", workoutId).maybeSingle();
+  if (!w || w.type === "steps") return { sent: 0, reason: "intet pas" };
+  const { data: profs } = await db.from("profiles").select("id, name");
+  const who = first(profs?.find((x) => x.id === w.user_id)?.name);
+  const what = w.type === "other" && w.activity ? w.activity : TYPE_NAMES[w.type] ?? "træning";
+  const num = (v: unknown) => Number(v).toLocaleString("da-DK");
+  const parts = [what];
+  if (w.distance_km) parts.push(`${num(w.distance_km)} km`);
+  if (w.duration_minutes) parts.push(`${num(w.duration_minutes)} min`);
+  const body = `${parts.join(" · ")}. Åbn appen og bekræft – og giv gerne en high five!`;
+  let sent = 0;
+  for (const p of profs ?? []) {
+    if (p.id === w.user_id) continue;
+    sent += await sendTo(p.id, `${who} har trænet 💪`, body, "workout");
+  }
+  return { sent };
+}
+
 // Sletter billeder og beskeder ældre end historikken (pas og XP bevares).
 async function cleanup() {
   const { data: st } = await db.from("settings").select("history_days").eq("id", 1).single();
@@ -202,6 +226,7 @@ Deno.serve(async (req) => {
     if (req.headers.get("x-cron-secret") !== keys.cron_secret) return json({ error: "nej tak" }, 403);
     if (mode === "init") return json({ ok: true });
     if (mode === "cleanup") return json({ ok: true, ...(await cleanup()) });
+    if (mode === "workout") return json({ ok: true, ...(await workoutPosted(String(body.workout_id))) });
     if (mode === "duel") return json({ ok: true, ...(await duelChallenge(String(body.duel_id))) });
     return json({ ok: true, results: await runDaily() });
   } catch (e) {
