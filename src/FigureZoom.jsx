@@ -47,6 +47,7 @@ export default function FigureZoom({ player: p, rank, isMe, appearance, items, f
         <p className={`formtag level-${p.form.level}`}>
           {p.form.label}{p.form.level > 0 ? ` · ${p.form.days} dage uden træning` : ''}
         </p>
+        <button type="button" className="btn zoom-done" onClick={onClose}>Luk</button>
       </div>
     </div>
   );
