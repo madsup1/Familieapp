@@ -131,6 +131,16 @@ export function unlockText(item) {
   return `${req} · trin ${item.stage_required}`;
 }
 
+// Juletema (sne på kortene, nissehue på alle figurer): 20. november – 6. januar, slår selv til og fra.
+// Kan tvinges i preview med ?jul=1 / ?jul=0.
+export function isChristmas(d = new Date()) {
+  const force = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('jul') : null;
+  if (force === '1') return true;
+  if (force === '0') return false;
+  const m = d.getMonth(), day = d.getDate();
+  return (m === 10 && day >= 20) || m === 11 || (m === 0 && day <= 6);
+}
+
 export function localISO(d = new Date()) {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }

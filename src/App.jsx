@@ -3,6 +3,7 @@ import { Home as HomeIcon, PlusCircle, User, Settings as Gear, LogOut } from 'lu
 import { supabase, configured } from './supabase.js';
 import { normalizeSettings, isoWeek, localISO, DEFAULT_APPEARANCE, playerInfo } from './game.js';
 import DuelReveal, { duelToReveal } from './DuelReveal.jsx';
+import Jul from './Jul.jsx';
 import { registerWorker } from './notify.js';
 import Auth from './Auth.jsx';
 import Home from './Home.jsx';
@@ -109,6 +110,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <Jul />
       <header className="topbar">
         <div className="brand">
           <span className="logo pixel">Motionsligaen</span>

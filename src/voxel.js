@@ -1,7 +1,7 @@
 // 3D-figur bygget af klodser (voxel-stil) med three.js.
 // Mål er i "pixels": hoved 8, krop 12 høj, arme og ben 12 lange (som klassiske klodsfigurer).
 import * as THREE from 'three';
-import { lookOf } from './game.js';
+import { lookOf, isChristmas } from './game.js';
 
 const SHOULDER = 24; // armenes omdrejningspunkt
 const hex = (c) => (typeof c === 'number' ? c : parseInt(String(c).replace('#', ''), 16));
@@ -232,6 +232,19 @@ export function buildCharacter(appearance, itemsById, stats, decay = 0) {
       }
       box(head, 1, 0.4, 0.3, 0, 29, z + 0.05, gl); // næseryg
     }
+  }
+
+  // Juletid: alle får nissehue (over den valgte hat)
+  if (isChristmas()) {
+    const RED = 0xd62828, WHITE = 0xf8fafc;
+    box(head, 9.2, 1.8, 9.2, 0, 32.2, 0, WHITE); // pelskant
+    box(head, 8.4, 2, 8.4, 0, 34, 0, RED);
+    box(head, 6.6, 2, 6.6, 0.5, 36, -0.3, RED);
+    box(head, 4.8, 2, 4.8, 1.2, 37.8, -0.8, RED);
+    box(head, 3, 1.8, 3, 2.2, 39.3, -1.3, RED);
+    box(head, 2.2, 1.8, 2.2, 3.8, 39.6, -1.7, RED); // spidsen hænger ned
+    box(head, 2.6, 2.6, 2.6, 5.4, 38.6, -2, WHITE); // kvast
+    return g;
   }
 
   // Hatte

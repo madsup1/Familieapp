@@ -23,6 +23,7 @@ faktisk bruger appen — venlighed over for den, der halter bagefter, er vigtige
 - `src/Log.jsx` — log træning (6 typer; "Andet" har fritekst `activity`, vist via `workoutLabel()`), billede, dagens XP, seneste ture. Eksporterer `TYPE_ICONS`.
 - `src/Character.jsx` — figur (navn, form, beskeder, udstyr som fold-ud-liste pr. plads). Nyt udstyr: række i `items` + tegning i `voxel.js` (efter id); pladser i `SLOTS` (game.js) og `items_slot_check`. `src/Figure.jsx` + `src/voxel.js` — 3D-figuren.
 - `src/Cheers.jsx` — high-fives/kommentarer. `src/Photo.jsx` — billeder (signerede URL'er, nedskalering før upload).
+- `src/Jul.jsx` — juletema 20. nov – 6. jan (`isChristmas()` i game.js; `?jul=1/0` i preview): klassen `jul` på <html> giver sne på kortene (styles.css), faldende sne bagved, og `voxel.js` giver alle figurer nissehue.
 - `src/Settings.jsx` — kun admin: invitationer og balance. `src/notify.js` — push-tilmelding.
 - `src/game.js` — **delte spilregler på klienten** (niveau, trin, form, ugemål, XP-forhåndsvisning). Skal matche databasen.
 - `preview/mockSupabase.js` + `vite.preview.config.js` — preview-build med falsk database i hukommelsen
