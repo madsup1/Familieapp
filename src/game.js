@@ -10,6 +10,8 @@ export const TYPE_HINTS = {
 export const DISTANCE_TYPES = ['running', 'walking', 'cycling'];
 // Skridt fra telefonens Sundhed-app (kommer automatisk via en genvej, logges ikke i hånden)
 export const typeLabel = (t) => TYPE_LABELS[t] ?? (t === 'steps' ? 'Skridt' : t);
+// Navn på et pas: ved "Andet" vises det, man selv har skrevet (fx "Yoga")
+export const workoutLabel = (w) => (w.type === 'other' && w.activity ? w.activity : typeLabel(w.type));
 const isActiveDay = (w, s) => w.type !== 'steps' || Number(w.steps) >= (s?.steps_form_min || 6000);
 export const isDistanceType = (t) => DISTANCE_TYPES.includes(t);
 

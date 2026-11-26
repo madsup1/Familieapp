@@ -20,7 +20,7 @@ faktisk bruger appen — venlighed over for den, der halter bagefter, er vigtige
 ## Filer
 - `src/App.jsx` — login-flow, dataindlæsning (kun de seneste `settings.history_days`, standard 60 dage), navigation.
 - `src/Home.jsx` — Oversigt: ugemål, bekræftelser med high-five, dueller, stilling, feed, ugegraf, hurtig log.
-- `src/Log.jsx` — log træning (6 typer), billede, dagens XP, seneste ture. Eksporterer `TYPE_ICONS`.
+- `src/Log.jsx` — log træning (6 typer; "Andet" har fritekst `activity`, vist via `workoutLabel()`), billede, dagens XP, seneste ture. Eksporterer `TYPE_ICONS`.
 - `src/Character.jsx` — figur (navn, form, beskeder, udstyr). `src/Figure.jsx` + `src/voxel.js` — 3D-figuren.
 - `src/Cheers.jsx` — high-fives/kommentarer. `src/Photo.jsx` — billeder (signerede URL'er, nedskalering før upload).
 - `src/Settings.jsx` — kun admin: invitationer og balance. `src/notify.js` — push-tilmelding.

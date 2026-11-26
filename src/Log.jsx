@@ -12,6 +12,8 @@ export const TYPE_ICONS = {
 const ICONS = TYPE_ICONS;
 const MUSCLES = ['Ben', 'Ryg', 'Bryst', 'Arme', 'Skuldre', 'Mave/core', 'Hele kroppen'];
 
+const ACTIVITY_IDEAS = ['Yoga', 'Padel', 'Dans', 'Gymnastik', 'Havearbejde', 'Bordtennis'];
+
 function PhotoDateNote({ taken, day, date, mismatch, onUseDate }) {
   if (taken === undefined) return <p className="photo-date">Læser billedets dato…</p>;
   if (!taken) {
@@ -35,6 +37,7 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
   const [duration, setDuration] = useState('');
   const [distance, setDistance] = useState('');
   const [muscle, setMuscle] = useState('');
+  const [activity, setActivity] = useState('');
   const [photo, setPhoto] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -75,7 +78,8 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
   const photoReading = !!(photo && photoTaken === undefined);
   const valid =
     !photoMismatch && !photoReading && (
-      !!photo && (byDistance ? Number(distance) > 0 : Number(duration) > 0));
+      !!photo && (type !== 'other' || activity.trim().length > 0) &&
+      (byDistance ? Number(distance) > 0 : Number(duration) > 0));
 
   async function save(e) {
     e.preventDefault();
@@ -101,6 +105,7 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
         duration_minutes: Number(duration) > 0 ? Number(duration) : null,
         distance_km: byDistance ? Number(distance) : null,
         muscle_group: type === 'strength' && muscle ? muscle : null,
+        activity: type === 'other' ? activity.trim() : null,
         proof_path: proofPath,
         proof_status: 'pending',
         photo_taken_at: photo && photoTaken ? localStamp(photoTaken) : null,
@@ -113,6 +118,7 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
       setDuration('');
       setDistance('');
       setMuscle('');
+      setActivity('');
       setPhoto(null);
       refresh();
     } catch (err) {
@@ -156,6 +162,19 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
           </div>
           <input type="date" aria-label="Vælg en anden dato" value={date} max={localISO()} onChange={(e) => setDate(e.target.value)} required />
         </div>
+
+        {type === 'other' && (
+          <div className="field">
+            <label htmlFor="activity" className="flabel">Hvad har du lavet?</label>
+            <input id="activity" type="text" maxLength={40} autoCapitalize="sentences" placeholder="Fx yoga eller padel"
+              value={activity} onChange={(e) => setActivity(e.target.value)} />
+            <div className="chips">
+              {ACTIVITY_IDEAS.map((a) => (
+                <button type="button" key={a} className={`chip ${activity === a ? 'active' : ''}`} aria-pressed={activity === a} onClick={() => setActivity(activity === a ? '' : a)}>{a}</button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {byDistance && (
           <label className="field">

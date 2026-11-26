@@ -98,6 +98,7 @@ seedWorkout('u-peter', 9, 'strength', { duration_minutes: 60, muscle_group: 'Bry
 seedWorkout('u-peter', 5, 'running', { distance_km: 4, duration_minutes: 26 });
 seedWorkout('u-sofie', n(1), 'running', { distance_km: 7, duration_minutes: 40 });
 seedWorkout('u-sofie', n(2), 'swimming', { duration_minutes: 45 });
+seedWorkout('u-peter', n(2), 'other', { duration_minutes: 50, activity: 'Padel' });
 seedWorkout('u-jonas', n(1), 'cycling', { distance_km: 30, duration_minutes: 80 });
 seedWorkout('u-jonas', n(2), 'walking', { distance_km: 6, duration_minutes: 70 });
 seedWorkout('u-peter', n(1), 'steps', { steps: 11240 });

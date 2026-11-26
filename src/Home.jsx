@@ -9,7 +9,7 @@ import {
   playerInfo, sumXp, startOfWeek, localISO, daysLeft, firstName, shortDate,
   TYPE_LABELS, STAGE_NAMES, autoConfirmText, rawXp,
   weekProgress, duelDays, pctText, MIN_MINUTES, MIN_KM,
-  genitive, typeLabel,
+  genitive, typeLabel, workoutLabel,
 } from './game.js';
 
 const DAYS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
@@ -361,7 +361,7 @@ function Feed({ players, workouts, me, settings, cheers, refresh, setError }) {
         <div key={w.id} className="feed-item">
           <div className="trip">
             <div>
-              <strong>{w.user_id === me.id ? 'Dig' : nameOf(w.user_id)} · {typeLabel(w.type)}</strong>
+              <strong>{w.user_id === me.id ? 'Dig' : nameOf(w.user_id)} · {workoutLabel(w)}</strong>
               <div className="sub small">{workoutLine(w)}</div>
               {w.proof_status === 'pending' && <span className="tag">Afventer bekræftelse · {autoConfirmText(w)}</span>}
               {w.proof_status === 'rejected' && <span className="tag red">Afvist</span>}
@@ -408,7 +408,7 @@ function ConfirmItem({ w, me, nameOf, settings, refresh, setError }) {
       <button className="confirm-head" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="qicon small">{Icon && <Icon size={20} />}</span>
         <span className="confirm-text">
-          <strong>{nameOf(w.user_id)} · {typeLabel(w.type)} · {Math.round(rawXp(w, settings))} XP</strong>
+          <strong>{nameOf(w.user_id)} · {workoutLabel(w)} · {Math.round(rawXp(w, settings))} XP</strong>
           <span className="sub small">{workoutLine(w)}</span>
           <PhotoDateTag w={w} />
         </span>
