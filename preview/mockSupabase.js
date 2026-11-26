@@ -158,7 +158,10 @@ class Query {
       for (const p of list) {
         const row = { created_at: new Date().toISOString(), ...structuredClone(p) };
         if (this.table === 'workouts') {
-          // Samme regel som databasen (check_photo_date)
+          // Samme regler som databasen (RLS: billede påkrævet, check_photo_date)
+          if (!row.proof_path && row.type !== 'steps') {
+            return { data: null, error: { code: '42501', message: 'Tag et billede som bevis.' } };
+          }
           if (row.photo_taken_at && row.photo_taken_at.slice(0, 10) !== row.workout_date) {
             return { data: null, error: { code: '23514', message: 'Billedet er taget en anden dag end træningen. Vælg et billede fra samme dag.' } };
           }

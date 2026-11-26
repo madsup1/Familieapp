@@ -36,7 +36,7 @@ faktisk bruger appen — venlighed over for den, der halter bagefter, er vigtige
   (så gamle pas aldrig skifter værdi, hvis satserne ændres).
 - **Alle pas skal bekræftes** af en anden spiller (`confirm_workout`; man kan ikke bekræfte egne). Afventende pas giver 0 XP.
   Efter 3 dage bekræftes de automatisk (`auto_confirm_and_settle`, én ad gangen så loftet regnes rigtigt). Afviste forbliver afviste.
-- **Styrke kræver billede**; øvrige typer har valgfrit billede (fx Strava-skærmbillede). Bucket `proofs` (privat), sti `<user_id>/<workout_id>.<ext>`.
+- **Alle pas kræver billede** (RLS på insert: `proof_path is not null`; skridt undtaget). Distancetyper må vælge fra billedbiblioteket (fx Strava-skærmbillede). Bucket `proofs` (privat), sti `<user_id>/<workout_id>.<ext>`.
 - **Ugemål** = træningsdage pr. uge (1–7). En dag tæller ved ét ikke-afvist pas på ≥15 min eller ≥2 km (`training_days`).
   Ændres via `set_weekly_goal`: første gang med det samme, ellers fra næste mandag (`pending_goal`/`pending_from`).
   `profiles` har kolonne-rettigheder: brugere må kun opdatere `name` direkte.

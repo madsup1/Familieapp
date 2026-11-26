@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Footprints, PersonStanding, Bike, Waves, Dumbbell, Activity, Camera, ImagePlus, X, Check } from 'lucide-react';
+import { Footprints, PersonStanding, Bike, Waves, Dumbbell, Activity, Camera, X, Check } from 'lucide-react';
 import { shrinkImage, readPhotoDate, localStamp } from './Photo.jsx';
 import { supabase } from './supabase.js';
 import {
@@ -75,9 +75,7 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
   const photoReading = !!(photo && photoTaken === undefined);
   const valid =
     !photoMismatch && !photoReading && (
-      byDistance ? Number(distance) > 0
-      : type === 'strength' ? Number(duration) > 0 && photo
-      : Number(duration) > 0);
+      !!photo && (byDistance ? Number(distance) > 0 : Number(duration) > 0));
 
   async function save(e) {
     e.preventDefault();
@@ -135,7 +133,7 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
           {Object.keys(TYPE_LABELS).map((t) => {
             const Icon = ICONS[t];
             return (
-              <button type="button" key={t} className={`typecard ${type === t ? 'active' : ''}`} onClick={() => { setType(t); setPhoto(null); }}>
+              <button type="button" key={t} className={`typecard ${type === t ? 'active' : ''}`} onClick={() => setType(t)}>
                 <Icon size={30} />
                 <strong>{TYPE_LABELS[t]}</strong>
                 <span>{TYPE_HINTS[t]}</span>
@@ -181,37 +179,23 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
                 </button>
               ))}
             </div>
-            {photoUrl ? (
-              <div className="photo-chosen">
-                <img src={photoUrl} alt="Valgt bevisbillede" />
-                <button type="button" className="iconbtn" onClick={() => setPhoto(null)} aria-label="Fjern billede"><X size={18} /></button>
-              </div>
-            ) : (
-              <label className="photo">
-                <Camera size={24} />
-                <span>Tag et billede som bevis<small>Påkrævet for styrketræning</small></span>
-                <input type="file" accept="image/*" capture="environment" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
-              </label>
-            )}
           </>
         )}
 
-        {type !== 'strength' && (
-          photoUrl ? (
-            <div className="photo-chosen">
-              <img src={photoUrl} alt="Valgt billede" />
-              <button type="button" className="iconbtn" onClick={() => setPhoto(null)} aria-label="Fjern billede"><X size={18} /></button>
-            </div>
-          ) : (
-            <label className="photo">
-              <ImagePlus size={24} />
-              <span>
-                Vedhæft billede — valgfrit
-                <small>{byDistance ? 'Fx et skærmbillede af turen fra Strava' : 'Fx et billede fra turen'}</small>
-              </span>
-              <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
-            </label>
-          )
+        {photoUrl ? (
+          <div className="photo-chosen">
+            <img src={photoUrl} alt="Valgt bevisbillede" />
+            <button type="button" className="iconbtn" onClick={() => setPhoto(null)} aria-label="Fjern billede"><X size={18} /></button>
+          </div>
+        ) : (
+          <label className="photo">
+            <Camera size={24} />
+            <span>
+              Tag et billede som bevis
+              <small>{byDistance ? 'Påkrævet – fx fra turen eller et skærmbillede fra Strava' : 'Påkrævet for alle træninger'}</small>
+            </span>
+            <input type="file" accept="image/*" {...(byDistance ? {} : { capture: 'environment' })} onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+          </label>
         )}
 
         {photo && <PhotoDateNote taken={photoTaken} day={photoDay} date={date} mismatch={photoMismatch} onUseDate={setDate} />}
@@ -234,6 +218,7 @@ export default function Log({ me, settings, workouts, cheers, profiles, refresh,
         <button className="btn primary big pixel" disabled={busy || !valid}>
           {busy ? 'Gemmer…' : 'Gem træning'}
         </button>
+        {!photo && raw > 0 && <p className="sub small">Tag et billede for at gemme.</p>}
         {message && <p className="notice">{message}</p>}
       </form>
 
